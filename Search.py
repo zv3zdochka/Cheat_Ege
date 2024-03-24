@@ -169,6 +169,7 @@ if __name__ == "__main__":
             n_d[1] = pch.current_num
             data[pch.subject_name] = n_d
             del pch
+            print('sub')
         with open(inp[0], 'w') as file:
             json.dump(data, file, ensure_ascii=False)
         print('cycle')

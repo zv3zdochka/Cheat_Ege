@@ -127,6 +127,7 @@ class PageChecker:
 
 
 def do():
+    # TODO: Delete thsi shit and add normal bot 
     # connect to tg bot
     pass
 

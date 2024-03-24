@@ -5,17 +5,36 @@ try:
     from bs4 import BeautifulSoup
     from concurrent.futures import ThreadPoolExecutor
     import concurrent
+    import typing
     import requests
     from requests.auth import HTTPProxyAuth
     import json
     from sdamgia import SdamGIA
     import datetime
+    import asyncio
+    import logging
+    from aiogram import Bot, Dispatcher, types
+    from aiogram.enums import ParseMode
+    from aiogram.filters import CommandStart, Command
+    from aiogram.types import Message, BufferedInputFile
+    from aiogram.utils.markdown import hbold
+    from aiogram import exceptions
+    import time
+    import os
+
 except ModuleNotFoundError:
     with open('log.txt', 'a') as f:
         f.write(f"Required libraries are missing.\n")
     sys.exit("Required libraries are missing. Please install them using:\n"
              "pip install -r requirements.txt\n"
              "You can find the requirements.txt file at: https://github.com/zv3zdochka/LAW.git")
+
+
+TOKEN = "6496217305:AAHqra3VRuj3yX9x2UzfLWM_kMFdm725Ark"
+dp = Dispatcher()
+users = [714402088]
+logging.basicConfig(level=logging.INFO, filename='log.log')
+log = logging.getLogger('broadcast')
 
 
 class PageChecker:
@@ -45,15 +64,14 @@ class PageChecker:
                         return f"Page not found: {page_id}"
 
                     for target in self.targets:
-                        if target in text:
+                        if True:  # TODO: Switch it back to if target in page
                             return f"Target {target} found on page {page_id}"
 
                     if "JavaScript" in text:
                         return f"JavaScript detected on the page {id}"
 
         except Exception as e:
-            with open('log.txt' 'a') as f:
-                f.write(f"Exception processing page {page_id}. On time {datetime.datetime.now()}\n")
+            log.log(40, f"Exception processing page {page_id}. On time {datetime.datetime.now()}\n")
             return f"Error processing page {page_id}: {e}"
 
     def get_current_test_num(self):
@@ -62,8 +80,7 @@ class PageChecker:
             self.current_num = int(sdamgia.generate_test(self.subject_name, {1: 1}))
             del sdamgia
         except KeyError:
-            with open('log.txt' 'a') as f:
-                f.write(f"Vpn or proxy error. On time {datetime.datetime.now()}\n")
+            log.log(40, f"Vpn or proxy error. On time {datetime.datetime.now()}\n")
             exit("Switch off your VPN and try again")
 
     def id_generator_up(self):
@@ -76,9 +93,9 @@ class PageChecker:
                 yield None
 
     def main(self, generator):
-        with ThreadPoolExecutor(max_workers=self.workers) as executor:
+        with ThreadPoolExecutor(max_workers=self.workers) as worker:
             ids = generator()
-            futures = {executor.submit(self.check_page, next(ids)): id for id in range(50)}
+            futures = {worker.submit(self.check_page, next(ids)): id for id in range(50)}
             while futures:
 
                 done, _ = concurrent.futures.wait(futures, return_when=concurrent.futures.FIRST_COMPLETED)
@@ -92,14 +109,13 @@ class PageChecker:
                             self.founded.append([self.subject_name, result])
 
                     except Exception as exc:
-                        with open('log.txt', 'a') as f:
-                            f.write(f"Exception processing page {page_id}: {exc}. On time {datetime.datetime.now()}\n")
+                        log.log(40, f"Exception processing page {page_id}: {exc}. On time {datetime.datetime.now()}\n")
 
                     new_id = next(ids)
                     if new_id is None:
                         break
-                    futures[executor.submit(self.check_page, new_id)] = new_id
-            executor.shutdown(wait=True)
+                    futures[worker.submit(self.check_page, new_id)] = new_id
+            worker.shutdown(wait=True)
 
     def search_from_to(self):
         self.main(self.id_generator_up)
@@ -126,10 +142,55 @@ class PageChecker:
         return subjects.get(name)
 
 
-def do():
-    # TODO: Delete thsi shit and add normal bot 
-    # connect to tg bot
-    pass
+@dp.message(CommandStart())
+async def command_start_handler(message: Message) -> None:
+    if message.from_user is not None:
+        await message.answer(f"Hello, {hbold(message.from_user.full_name)}, {message.from_user.id}!")
+        users.append(message.from_user.id)
+        await message.answer_dice()
+    else:
+        await message.answer("Who tf are you?")
+
+
+async def send_message(user_id: int, text: str, bot: Bot, disable_notification: bool = False) -> bool:
+    """
+    Safe messages sender
+
+    :param user_id:
+    :param text:
+    :param disable_notification:
+    :return:
+    """
+    try:
+        await bot.send_message(user_id, text, disable_notification=disable_notification)
+    except Exception as e:
+        log.log(50, f"{e}")
+    else:
+        log.info(f"Target [ID:{user_id}]: success")
+        return True
+    return False
+
+
+async def broadcaster(data: typing.Any, bot: Bot) -> int:
+    """
+    For our next generations:
+    I dont give a fuck of what data type is data, but i pray to Lord that it will be int or float or string
+    also me after getting that i chose what type it will be: https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.quora.com%2FIf-Dr-Strange-pushed-Thanoss-body-into-astral-form-during-the-battle-on-Titan-what-would-Thanos-have-done&psig=AOvVaw3FFiUFHuvylu2x9eIbS43q&ust=1711380801284000&source=images&cd=vfe&opi=89978449&ved=0CBEQjRxqFwoTCLjvkrqcjYUDFQAAAAAdAAAAABAE
+    Simple broadcaster
+
+    :return: Count of messages
+    """
+    global users
+    count = 0
+    try:
+        for user_id in users:
+            if await send_message(user_id, str(data), bot):
+                count += 1
+            await asyncio.sleep(.05)  # 20 messages per second (Limit: 30 messages per second)
+    finally:
+        log.info(f"{count} messages successful sent.")
+
+    return count
 
 
 if __name__ == "__main__":
@@ -140,22 +201,21 @@ if __name__ == "__main__":
         exit('Usage: python Search.py nameoffile.json quantity_of_threads')
     threads = int(inp[1])
     if not (1 <= threads <= 16):
-        with open('log.txt' 'a') as f:
-            f.write(f"Invalid number of threads. On time {datetime.datetime.now()}\n")
+        log.log(40, f"Invalid number of threads. On time {datetime.datetime.now()}\n")
         exit("Invalid number of threads. Please choose a value between 1 and 16. Recommended number of threads is 2~3.")
     try:
-        with open(inp[0], 'r', errors='ignore', encoding="windows-1251") as file:
+        with open(inp[0], 'r', errors='ignore') as file:
             data = json.load(file)
             for key, value in data.items():
                 data[key] = [value[0], value[1]]
 
     except FileNotFoundError:
-        with open('log.txt' 'a') as f:
-            f.write(f"No data file. On time {datetime.datetime.now()}\n")
+        log.log(40, f"No data file. On time {datetime.datetime.now()}\n")
         exit("Add data.json file")
 
     # main loop
     sleep_time = 10
+    bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
     while True:
         s_t = time.time()
         print(data)
@@ -163,8 +223,8 @@ if __name__ == "__main__":
             pch = PageChecker(key, value[0], value[1], threads)
             pch.search_from_to()
             for j in pch.founded:
+                asyncio.run(broadcaster(f'{j[0]}:{j[1]}', bot))
                 with open('found.txt', 'a') as f:
-                    do()
                     f.write(f"Found in subject {j[0]}: {j[1]}. On time {datetime.datetime.now()}\n")
             n_d = data[pch.subject_name]
             n_d[1] = pch.current_num

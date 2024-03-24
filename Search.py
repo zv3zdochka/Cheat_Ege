@@ -139,7 +139,7 @@ if __name__ == "__main__":
         exit('Usage: python Search.py nameoffile.json quantity_of_threads')
     threads = int(inp[1])
     if not (1 <= threads <= 16):
-        with open('log.txt' 'a') as f:
+        with open('log.txt', 'a') as f:
             f.write(f"Invalid number of threads. On time {datetime.datetime.now()}\n")
         exit("Invalid number of threads. Please choose a value between 1 and 16. Recommended number of threads is 2~3.")
     try:

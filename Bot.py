@@ -1,6 +1,9 @@
 import asyncio
 import logging
+import random
 import sys
+import time
+
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import Message, FSInputFile
 from aiogram.utils.markdown import hbold
@@ -142,6 +145,21 @@ async def main() -> None:
     await dp.start_polling(bot)
 
 
+async def broadcaster(st: str):
+    try:
+        await tell_user(st)
+    except Exception as e:
+        exit(e)
+
+
+async def get_info():
+    print("begin")
+    while True:
+        r = random.randrange(0, 10)
+        time.sleep(r)
+        await broadcaster(str(r * 19))
+
+
 if __name__ == "__main__":
     try:
         with open('users.json', 'r', errors='ignore') as file:
@@ -155,4 +173,5 @@ if __name__ == "__main__":
     except FileNotFoundError:
         exit("Add users.json file")
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+    asyncio.run(get_info())
     asyncio.run(main())

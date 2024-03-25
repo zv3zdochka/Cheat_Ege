@@ -1,40 +1,33 @@
 import asyncio
 import logging
 import sys
-import json
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import Message
 from aiogram.utils.markdown import hbold
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
+import json
 
-TOKEN = "6989806548:AAFDzbM1BEPG3EKeYwpGc212xw8D1HFPu3E"  # Replace with your bot token
+TOKEN = "6989806548:AAFDzbM1BEPG3EKeYwpGc212xw8D1HFPu3E"
 auth_waiting = []
 users = []
 admins = []
+try:
+    with open('users.json', 'r', errors='ignore') as file:
+        data = dict(json.load(file))
+        print(data)
+        users = data.get('users')
+        admins = data.get('admins')
 
-logging.basicConfig(level=logging.INFO)
+except FileNotFoundError:
+    exit("Add users.json file")
 
 dp = Dispatcher()
 bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
 
-async def on_startup(dp):
-    logging.info("Bot started, initializing...")
 
-    try:
-        with open('users.json', 'r') as file:
-            data = json.load(file)
-            users.extend(data.get('users', []))
-            admins.extend(data.get('admins', []))
-    except FileNotFoundError:
-        logging.error("users.json file not found.")
-        sys.exit(1)
-
-async def on_shutdown(dp):
-    logging.info("Bot shutdown.")
-
-@dp.message_handler(commands=['start'])
-async def command_start_handler(message: types.Message) -> None:
+@dp.message(CommandStart())
+async def command_start_handler(message: Message) -> None:
     """
     Handler for the /start command.
     """
@@ -54,7 +47,8 @@ async def command_start_handler(message: types.Message) -> None:
         for i in auth_waiting:
             await message.answer(i)
 
-@dp.message_handler()
+
+@dp.message()
 async def echo_handler(message: types.Message) -> None:
     """
     Handler forwards a message back to the sender.
@@ -84,15 +78,17 @@ async def echo_handler(message: types.Message) -> None:
         else:
             await bot.send_message(1363003331, f"No such command")
 
+
 async def tell_user(text: str):
     for i in users:
         await bot.send_message(i, text)
 
-async def main():
-    await on_startup(dp)
-    await dp.start_polling()
-    await on_shutdown(dp)
 
-if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
+async def main() -> None:
+    await dp.start_polling(bot)
+
+
+if __name__ == "__main__":
+
+    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+    asyncio.run(main())

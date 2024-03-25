@@ -2,13 +2,13 @@ import asyncio
 import logging
 import sys
 from aiogram import Bot, Dispatcher, types
-from aiogram.types import Message
+from aiogram.types import Message, FSInputFile
 from aiogram.utils.markdown import hbold
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
 import json
 
-TOKEN = "6989806548:AAFDzbM1BEPG3EKeYwpGc212xw8D1HFPu3E"
+TOKEN = "7104080784:AAFiU0STuHAsW-KsFOF5cwVozmdn1UCflB0"
 auth_waiting = []
 users = []
 admins = []
@@ -20,8 +20,7 @@ bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
 
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
-
-    nicknames[message.chat.id] = str(message.chat.username)
+    nicknames[str(message.chat.id)] = str(message.chat.username)
 
     if message.chat.id in ban:
         pass
@@ -43,11 +42,9 @@ async def command_start_handler(message: Message) -> None:
             await message.answer(i)
 
 
-
 @dp.message()
 async def echo_handler(message: types.Message) -> None:
-
-    nicknames[message.chat.id] = str(message.chat.username)
+    nicknames[str(message.chat.id)] = str(message.chat.username)
 
     if message.chat.id in ban:
         pass
@@ -70,10 +67,13 @@ async def echo_handler(message: types.Message) -> None:
                 await message.answer("No such user, waiting for authorization.")
 
         elif text[0] == 'deny':
-            auth_waiting.remove(int(text[1]))
-            await bot.send_message(int(text[1]), str("Permission denied."))
-            await bot.send_message(1363003331, f"Authorisation of user {text[1]} denied")
-            update_json()
+            if int(text[1]) in auth_waiting:
+                auth_waiting.remove(int(text[1]))
+                await bot.send_message(int(text[1]), str("Permission denied."))
+                await bot.send_message(1363003331, f"Authorisation of user {text[1]} denied")
+                update_json()
+            else:
+                await message.answer("No such user, waiting for authorization.")
 
         elif text[0] == 'text':
             await tell_user(text[1])
@@ -87,9 +87,20 @@ async def echo_handler(message: types.Message) -> None:
         elif text[0] == 'banned':
             await bot.send_message(1363003331, str(ban))
 
+        elif text[0] == 'save':
+            await bot.send_document(1363003331, FSInputFile(path='data.json'))
+            await bot.send_document(1363003331, FSInputFile(path='users.json'))
+            await bot.send_document(1363003331, FSInputFile(path='log.txt'))
+            await bot.send_document(1363003331, FSInputFile(path='found.txt'))
+
         elif text[0] == 'ban':
             ban.append(int(text[1]))
-            users.remove(int(text[1]))
+
+            try:
+                users.remove(int(text[1]))
+            except ValueError:
+                pass
+
             await bot.send_message(1363003331, f"User {text[1]} was successfully baned. ")
             update_json()
 
@@ -109,15 +120,17 @@ async def echo_handler(message: types.Message) -> None:
 
 
 def update_json():
-    print(ban)
-    print(users)
-    print(nicknames)
-    # with open('data.json', 'r') as f:
-    #     data = {}
-    #     data['admins'] = admins
-    #     data['users'] = users
-    #     json.dump(data, f)
-    #     del data
+    try:
+        with open('users.json', 'w') as f:
+            data = {}
+            data['admins'] = admins
+            data['users'] = users
+            data['ban'] = ban
+            data['nicknames'] = nicknames
+            json.dump(data, f)
+            del data
+    except Exception as e:
+        exit(e)
 
 
 async def tell_user(text: str):
@@ -136,6 +149,8 @@ if __name__ == "__main__":
             print(data)
             users = data.get('users')
             admins = data.get('admins')
+            nicknames = dict(data.get('nicknames'))
+            ban = data.get('ban')
 
     except FileNotFoundError:
         exit("Add users.json file")

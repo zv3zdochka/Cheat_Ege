@@ -171,3 +171,5 @@ cython_debug/
 /proxy.txt
 /log.txt
 /found.txt
+/multy.py
+/Asynco.py

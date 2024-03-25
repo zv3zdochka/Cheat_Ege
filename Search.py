@@ -23,18 +23,21 @@ try:
     import os
 
 except ModuleNotFoundError:
-    with open('log.txt', 'a') as f:
-        f.write(f"Required libraries are missing.\n")
     sys.exit("Required libraries are missing. Please install them using:\n"
              "pip install -r requirements.txt\n"
              "You can find the requirements.txt file at: https://github.com/zv3zdochka/LAW.git")
 
-
 TOKEN = "6496217305:AAHqra3VRuj3yX9x2UzfLWM_kMFdm725Ark"
 dp = Dispatcher()
-users = [714402088]
-logging.basicConfig(level=logging.INFO, filename='log.log')
+users = [714402088, 1363003331]
+logging.basicConfig(level=logging.INFO, filename='log.txt')
 log = logging.getLogger('broadcast')
+proxies = {
+    "http": "http://45.11.20.11:3000",
+    "socks": "socks5://45.11.20.11:3001"
+}
+
+auth = ('xj1DIJ', 'GgyGrVxW')
 
 
 class PageChecker:
@@ -55,8 +58,8 @@ class PageChecker:
 
         try:
             with requests.Session() as session:
-                #response = session.get(url, proxies=proxyDict, auth=auth)
-                response = session.get(url)
+                response = session.get(url, proxies=proxies, auth=auth)
+
                 if response.status_code == 200:
                     text = BeautifulSoup(response.text, 'html.parser').get_text()
 
@@ -64,7 +67,7 @@ class PageChecker:
                         return f"Page not found: {page_id}"
 
                     for target in self.targets:
-                        if True:  # TODO: Switch it back to if target in page
+                        if target in text:
                             return f"Target {target} found on page {page_id}"
 
                     if "JavaScript" in text:
@@ -197,14 +200,14 @@ if __name__ == "__main__":
     inp = sys.argv[1:]
     if len(inp) != 2:
         with open('log.txt', 'a') as f:
-            f.write(f"Wrong command. On time {datetime.datetime.now()}\n")
+            log.log(40, "Wrong command. On time {datetime.datetime.now()}\n")
         exit('Usage: python Search.py nameoffile.json quantity_of_threads')
     threads = int(inp[1])
     if not (1 <= threads <= 16):
         log.log(40, f"Invalid number of threads. On time {datetime.datetime.now()}\n")
         exit("Invalid number of threads. Please choose a value between 1 and 16. Recommended number of threads is 2~3.")
     try:
-        with open(inp[0], 'r', errors='ignore') as file:
+        with open(inp[0], 'r', errors='ignore', encoding='windows-1251') as file:
             data = json.load(file)
             for key, value in data.items():
                 data[key] = [value[0], value[1]]
@@ -216,6 +219,7 @@ if __name__ == "__main__":
     # main loop
     sleep_time = 10
     bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
+
     while True:
         s_t = time.time()
         print(data)
@@ -223,7 +227,7 @@ if __name__ == "__main__":
             pch = PageChecker(key, value[0], value[1], threads)
             pch.search_from_to()
             for j in pch.founded:
-                asyncio.run(broadcaster(f'{j[0]}:{j[1]}', bot))
+                asyncio.run(broadcaster(f'Subject: {j[0]}.\n {j[1]}', bot))
                 with open('found.txt', 'a') as f:
                     f.write(f"Found in subject {j[0]}: {j[1]}. On time {datetime.datetime.now()}\n")
             n_d = data[pch.subject_name]

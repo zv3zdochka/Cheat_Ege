@@ -13,6 +13,7 @@ try:
     from aiogram.filters import CommandStart
     import json
     import logging
+    import requests
 
 except ModuleNotFoundError:
     sys.exit("Required libraries are missing. Please install them using:\n"
@@ -30,22 +31,15 @@ bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
 
 logger = logging.getLogger("log.txt")
 
-proxies = {
-    "http": "http://45.11.20.11:3000",
-    "socks": "socks5://45.11.20.11:3001"
-}
-
-auth = ('xj1DIJ', 'GgyGrVxW')
-
-
 class PageChecker:
     def __init__(self, subject_name, targets, start):
         self.start_id = start
         self.subject_name = subject_name
         self.targets = targets
-        self.current_num = 0
         self.subject_url = self.subject_url_by_name(subject_name)
         self.founded = []
+        self.current_num = 0
+        self.generate_test()
 
     async def check_page(self, session, page_id):
         if page_id is None:
@@ -94,7 +88,6 @@ class PageChecker:
         await self.main(self.id_generator_up)
 
     def id_generator_up(self):
-        self.get_current_test_num()
         while self.start_id <= self.current_num:
             yield self.start_id
             self.start_id += 1
@@ -104,27 +97,11 @@ class PageChecker:
 
     def generate_test(self):
         problems = {1: 1}
+
         dif = {f'prob{i}': problems[i] for i in problems}
+        self.current_num = int(requests.get(f'{self.subject_url}/test?a=generate', dif,
+                            allow_redirects=False).headers['location'].split('id=')[1].split('&nt')[0])
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f'{self.subject_url}/test?a=generate', params=dif,
-                                   allow_redirects=False) as response:
-                location_header = response.headers.get('location')
-                if location_header:
-                    page_id = location_header.split('id=')[1].split('&nt')[0]
-                    self.current_num = int(page_id)
-                else:
-                    logging.error(f"Failed to generate test {datetime.datetime.now()}")
-                    exit()
-
-    def get_current_test_num(self):
-        try:
-            sdamgia = SdamGIA()
-            self.current_num = int(sdamgia.generate_test(self.subject_name, {1: 1}))
-            del sdamgia
-        except KeyError:
-            logging.error(f"VPN error {datetime.datetime.now()}")
-            exit("Switch off your VPN and try again")
 
     @staticmethod
     def subject_url_by_name(name):
@@ -209,7 +186,8 @@ async def echo_handler(message: types.Message) -> None:
                 await message.answer("No such user, waiting for authorization.")
 
         elif text[0] == 'text':
-            await send_users(text[1])
+
+            await send_users(' '.join(text[1:]))
 
         elif text[0] == 'users':
             await bot.send_message(1363003331, str(users))
@@ -227,6 +205,8 @@ async def echo_handler(message: types.Message) -> None:
             await bot.send_document(1363003331, FSInputFile(path='found.txt'))
 
         elif text[0] == 'ban':
+            if int(text[1]) in ban:
+                await bot.send_message(1363003331, f"User {text[1]} already banned")
             ban.append(int(text[1]))
 
             try:
@@ -303,12 +283,12 @@ async def search():
 
                 with open('found.txt', 'a') as f:
                     f.write(f"Found in subject {j[0]}: {j[1]}. On time {datetime.datetime.now()}\n")
-
+            print(pch.current_num)
             n_d = data[pch.subject_name]
             n_d[1] = pch.current_num
             data[pch.subject_name] = n_d
             del pch
-
+        print(data)
         with open('data.json', 'w') as file:
             json.dump(data, file, ensure_ascii=False)
 

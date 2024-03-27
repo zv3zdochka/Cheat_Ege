@@ -2,7 +2,6 @@ try:
     import datetime
     import aiohttp
     from bs4 import BeautifulSoup
-    from sdamgia import SdamGIA
     import asyncio
     import sys
     import time
@@ -28,18 +27,26 @@ ban = []
 nicknames = {}
 dp = Dispatcher()
 bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
+first = True
 
 logger = logging.getLogger("log.txt")
 
 class PageChecker:
     def __init__(self, subject_name, targets, start):
-        self.start_id = start
+        global first
+
+
         self.subject_name = subject_name
         self.targets = targets
         self.subject_url = self.subject_url_by_name(subject_name)
         self.founded = []
         self.current_num = 0
         self.generate_test()
+        if first:
+            self.start_id = self.generate_test_r()
+            first = False
+        else:
+            self.start_id = start
 
     async def check_page(self, session, page_id):
         if page_id is None:
@@ -102,7 +109,12 @@ class PageChecker:
         self.current_num = int(requests.get(f'{self.subject_url}/test?a=generate', dif,
                             allow_redirects=False).headers['location'].split('id=')[1].split('&nt')[0])
 
+    def generate_test_r(self):
+        problems = {1: 1}
 
+        dif = {f'prob{i}': problems[i] for i in problems}
+        return int(requests.get(f'{self.subject_url}/test?a=generate', dif,
+                            allow_redirects=False).headers['location'].split('id=')[1].split('&nt')[0])
     @staticmethod
     def subject_url_by_name(name):
         subjects = {

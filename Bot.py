@@ -61,7 +61,8 @@ async def echo_handler(message: types.Message) -> None:
 
     elif message.chat.id not in admins:
         await message.answer("Only admins can chat with the bot.\n"
-                             "If you want to tell something to admins write to: @sugarpups010")
+                             "If you want to tell something to admins or append a teacher write to: @sugarpups010\n"
+                             "If you want respect from historic person use /respect.")
 
     else:
         text = message.text.split()
@@ -82,6 +83,8 @@ async def echo_handler(message: types.Message) -> None:
                 auth_waiting.remove(int(text[1]))
                 await bot.send_message(int(text[1]), str("Permission denied."))
                 await bot.send_message(message.chat.id, f"Authorisation of user {text[1]} denied")
+                await bot.send_message(1363003331, f"User {message.chat.id} denied {int(text[1])}.")
+
                 update_json()
             else:
                 await message.answer("No such user, waiting for authorization.")
@@ -90,21 +93,32 @@ async def echo_handler(message: types.Message) -> None:
             await bot.send_message(message.chat.id, "God bless you!")
 
         elif text[0] == '/admin':
-            if int(text[1]) in admins:
-                await bot.send_message(message.chat.id, "Users is already an admin.")
-            elif int(text[1]) not in users:
-                await bot.send_message(message.chat.id, "Wrong user.")
+            if message.chat.id == 1363003331:
+                if int(text[1]) in admins:
+                    await bot.send_message(message.chat.id, "Users is already an admin.")
+                elif int(text[1]) not in users:
+                    await bot.send_message(message.chat.id, "Wrong user.")
 
-            elif int(text[1]) in ban:
-                await bot.send_message(message.chat.id, 'User in ban')
+                elif int(text[1]) in ban:
+                    await bot.send_message(message.chat.id, 'User in ban')
 
-            elif int(text[1]) in users:
-                admins.append(int(text[1]))
-                await bot.send_message(int(text[1]), "Now you`re an admin. Enjoy...")
-                await send_to_admins(f"User {int(text[1])} upgraded to admin by {message.chat.id}")
+                elif int(text[1]) in users:
+                    admins.append(int(text[1]))
+                    await bot.send_message(int(text[1]), "Now you`re an admin. Enjoy...")
+                    await send_to_admins(f"User {int(text[1])} upgraded to admin by {message.chat.id}")
+            else:
+                await bot.send_message(message.chat.id, "Only the creator can make admins.")
+                await bot.send_message(1363003331, f"User {message.chat.id} tried to make admin user {int(text[1])}.")
 
         elif text[0] == '/text':
             await tell_user(text[1])
+        elif text[0] == '/textu':
+            if int(text[1]) not in users:
+                await bot.send_message(message.chat.id, "No such user.")
+            else:
+                await bot.send_message(int(text[1]), ' '.join(text[2:]))
+                await bot.send_message(1363003331,
+                                       f"User {message.chat.id} texted to {text[1]} this {' '.join(text[2:])}.")
 
         elif text[0] == '/users':
             await bot.send_message(message.chat.id, str(users))
@@ -120,18 +134,22 @@ async def echo_handler(message: types.Message) -> None:
             await bot.send_document(message.chat.id, FSInputFile(path='users.json'))
             await bot.send_document(message.chat.id, FSInputFile(path='log.txt'))
             await bot.send_document(message.chat.id, FSInputFile(path='found.txt'))
+            await bot.send_message(1363003331, f"User {message.chat.id} save files.")
 
         elif text[0] == '/ban':
-            ban.append(int(text[1]))
-
-            try:
-                users.remove(int(text[1]))
-                admins.remove(int(text[1]))
-            except ValueError:
-                pass
-            finally:
-                await send_to_admins(f"User {text[1]} was banned by {message.chat.id}")
-                update_json()
+            if int(text[1]) == 1363003331:
+                await bot.send_message(message.chat.id, "You can`t ban the creator.")
+                await bot.send_message(1363003331, f"User {message.chat.id} tried to ban you.")
+            else:
+                ban.append(int(text[1]))
+                try:
+                    users.remove(int(text[1]))
+                    admins.remove(int(text[1]))
+                except ValueError:
+                    pass
+                finally:
+                    await send_to_admins(f"User {text[1]} was banned by {message.chat.id}")
+                    update_json()
 
         elif text[0] == '/free':
             ban.remove(int(text[1]))
@@ -140,10 +158,14 @@ async def echo_handler(message: types.Message) -> None:
             update_json()
 
         elif text[0] == '/delete':
-            await bot.send_message(int(text[1]), 'Administrator deleted you.')
-            users.remove(int(text[1]))
-            await send_to_admins(f"User {text[1]} was successfully deleted by {message.chat.id}")
-            update_json()
+            if int(text[1]) == 1363003331:
+                await bot.send_message("You can`t delete the creator.")
+                await bot.send_message(1363003331, f"User {message.chat.id} tried to delete you.")
+            else:
+                await bot.send_message(int(text[1]), 'Administrator deleted you.')
+                users.remove(int(text[1]))
+                await send_to_admins(f"User {text[1]} was successfully deleted by {message.chat.id}")
+                update_json()
 
         else:
             await bot.send_message(message.chat.id, f"No such command, use /help")
@@ -200,5 +222,5 @@ if __name__ == "__main__":
     except FileNotFoundError:
         exit("Add users.json file")
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
-    asyncio.run(get_info())
+    # asyncio.run(get_info())
     asyncio.run(main())

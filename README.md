@@ -89,3 +89,52 @@ Ensure that you pass the correct filename (`data.json`) as an argument.
 - Make sure you have access to the sdamgia.ru website.
 - Before using, ensure that your IP is not being blocked on the sdamgia.ru website.
 
+# Bot.py
+
+This file is a Telegram bot script designed to manage user authorization and interactions. It includes features such as authorization requests, user banning, message broadcasting, and more.
+
+## Bot Setup
+
+1. **Token**: Replace the `TOKEN` variable with your Telegram bot token obtained from BotFather.
+
+2. **Admin Authorization**: Replace `creator` variable value with your Telegram user id. This user will have admin privileges.
+
+3. **Running the Bot**: Run the script to start the bot.
+
+## Usage
+
+### User Authorization
+
+- When a user sends a message to the bot, they will be prompted for authorization.
+- Admins can authorize users using the `/allow` command followed by the user's ID.
+- Admins can deny authorization using the `/deny` command followed by the user's ID.
+
+### Commands
+
+- `/help`: Displays help message.
+- `/admin <user_id>`: Grants admin privileges to the specified user ID.
+- `/text <message>`: Sends the specified message to all users.
+- `/textto <user_id> <message>`: Sends the specified message to a specific user.
+- `/users`: Displays a list of authorized users.
+- `/all`: Displays a dictionary of user IDs and their corresponding usernames.
+- `/banned`: Displays a list of banned users.
+- `/save`: Sends the bot's data files to the invoking admin.
+- `/ban <user_id>`: Bans the specified user.
+- `/free <user_id>`: Unbans the specified user.
+- `/delete <user_id>`: Deletes the specified user from the list of authorized users.
+
+### Broadcasting
+
+- The bot periodically sends random messages to all authorized users.
+
+## Data Management
+
+- User authorization data is stored in `users.json`.
+- Logs are stored in `log.txt`.
+- Messages sent by the bot are logged in `found.txt`.
+
+## Important
+
+- Ensure that the bot is authorized to interact with users and has the necessary permissions.
+- Use admin commands with caution, especially commands that grant admin privileges or ban users.
+

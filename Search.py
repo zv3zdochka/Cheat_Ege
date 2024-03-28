@@ -30,7 +30,11 @@ bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
 first = True
 creator = 1363003331
 
-logger = logging.getLogger("log.txt")
+logging.basicConfig(filename='log.txt',
+                    filemode='a',
+                    format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                    datefmt='%H:%M:%S',
+                    level=logging.DEBUG)
 
 
 class PageChecker:
@@ -59,7 +63,7 @@ class PageChecker:
                     text = BeautifulSoup(html, 'html.parser').get_text()
 
                     if len(text) == 118:
-                        logging.warning(f"Page {url} not found in time {datetime.datetime.now()}")
+                        logging.warning(f"Page {url} not found.")
                         return
 
                     for target in self.targets:
@@ -67,11 +71,11 @@ class PageChecker:
                             return [page_id, target]
 
                     if "JavaScript" in text:
-                        logging.warning(f"Java on page {url} in time {datetime.datetime.now()}")
+                        logging.warning(f"JavaScript on page {url}.")
                         return
 
         except Exception as e:
-            logging.warning(f"Exeption {e} on {url} in time {datetime.datetime.now()}")
+            logging.warning(f"Exeption {e} on {url}.")
 
     async def fetch_all(self, ids):
         async with aiohttp.ClientSession() as session:
@@ -320,7 +324,7 @@ async def main() -> None:
 
 
 async def broadcaster(st: str):
-    logging.info(f"Broadcast {st} {datetime.datetime.now()}")
+    logging.info(f"Broadcast {st}.")
     try:
         await tell_users(st)
     except Exception as e:
@@ -344,7 +348,7 @@ async def search():
             await pch.search_from_to()
             for j in pch.founded:
                 print(j)
-                logging.info(f"Test {j} found in subject {pch.subject_name} {datetime.datetime.now()}")
+                logging.info(f"Test {j} found in subject {pch.subject_name}.")
                 await broadcaster(f"Subject: {pch.subject_name}\n"
                                   f"Id: {j[0]}\n"
                                   f"Target: {j[1]}")
@@ -368,7 +372,7 @@ async def search():
 
 if __name__ == "__main__":
     if len(sys.argv[1:]) != 0:
-        logging.critical(f"wrong command {datetime.datetime.now()}")
+        logging.critical(f"Wrong command {' '.join(sys.argv)}.")
         exit('Usage: python Search.py')
     try:
         with open('data.json', 'r', errors='ignore', encoding="windows-1251") as file:
@@ -377,7 +381,7 @@ if __name__ == "__main__":
                 data[key] = [value[0], value[1]]
 
     except FileNotFoundError:
-        logging.critical(f"No data.json in time {datetime.datetime.now()}")
+        logging.critical(f"No data.json.")
         exit("Add data.json file")
     try:
         with open('users.json', 'r', errors='ignore') as file:
@@ -389,7 +393,7 @@ if __name__ == "__main__":
             ban = data_bot.get('ban')
 
     except FileNotFoundError:
-        logging.critical(f"No users.json in time {datetime.datetime.now()}")
+        logging.critical(f"No users.json.")
         exit("Add users.json file")
 
 

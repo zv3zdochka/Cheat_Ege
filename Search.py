@@ -34,20 +34,17 @@ logger = logging.getLogger("log.txt")
 
 
 class PageChecker:
-    def __init__(self, subject_name, targets, start):
-        global first
-
+    def __init__(self, subject_name, targets, start=-1):
         self.subject_name = subject_name
         self.targets = targets
         self.subject_url = self.subject_url_by_name(subject_name)
-        self.founded = []
-        self.current_num = 0
-        self.generate_test()
-        if first:
-            self.start_id = self.generate_test_r()
-            first = False
+        if start == -1:
+            pass
         else:
             self.start_id = start
+            self.founded = []
+            self.current_num = 0
+            self.generate_test()
 
     async def check_page(self, session, page_id):
         if page_id is None:
@@ -331,14 +328,22 @@ async def broadcaster(st: str):
 
 
 async def search():
+    global first
     sleep_time = 15
     while True:
         s_t = time.time()
-        print(data)
+        if first:
+            for key, value in data.items():
+                pch = PageChecker(key, value[0])
+                data[key] = [value[0], pch.generate_test_r()]
+                del pch
+            first = False
+
         for key, value in data.items():
             pch = PageChecker(key, value[0], value[1])
             await pch.search_from_to()
             for j in pch.founded:
+                print(j)
                 logging.info(f"Test {j} found in subject {pch.subject_name} {datetime.datetime.now()}")
                 await broadcaster(f"Subject: {pch.subject_name}\n"
                                   f"Id: {j[0]}\n"
@@ -346,7 +351,6 @@ async def search():
 
                 with open('found.txt', 'a') as f:
                     f.write(f"Found in subject {j[0]}: {j[1]}. On time {datetime.datetime.now()}\n")
-            print(pch.current_num)
             n_d = data[pch.subject_name]
             n_d[1] = pch.current_num
             data[pch.subject_name] = n_d
@@ -357,7 +361,8 @@ async def search():
 
         if time.time() - s_t > 10:
             sleep_time -= 1
-
+        if time.time() - s_t < 2:
+            sleep_time += 1
         await asyncio.sleep(sleep_time)
 
 

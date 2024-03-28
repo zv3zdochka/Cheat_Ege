@@ -20,17 +20,81 @@ Project EGE is aimed at finding test variants created by teachers immediately af
 
 ## Files in the Project
 
-1. **Local_Search.py**: The main file of the project.
 
-2. **Local_Search_async.py**: This file contains asynchronous versions of functions for searching test variants created by teachers. It is intended for running on local machines.
+1. **Local_Search_async.py**: This file contains asynchronous versions of functions for searching test variants created by teachers. It is intended for running on local machines.
 
-3. **Bot.py**: This file contains the code for the bot component of the project.
+2. **Bot.py**: This file contains the code for the bot components of the project.
 
-4. **Search.py**: This file contains functions for server-side usage, allowing for searching test variants created by teachers.
+3. **Search.py**: This is an optimized server version of a bot designed for educational purposes. It is specifically tailored to monitor web pages for certain content and notify users accordingly.
 
-5. **Local_Search.py**: This file contains functions for searching test variants created by teachers. It supports two search modes: bottom-up and top-down. You can use the functions to search for the test variants on your pc. 
+4. **Local_Search.py**: This file contains functions for searching test variants created by teachers. It supports two search modes: bottom-up and top-down. You can use the functions to search for the test variants on your pc. 
 
-## Using the Files
+# Using the Files
+
+1. If you want to run the bot locally, you likely need to use either `Local_Search.py` or `Local_Search_async.py`. Choose the appropriate script based on your requirements and run it using Python.
+
+2. If you want to run Search.py on Yandex cloud virtual machine look VM.md
+## Search.py
+
+## How to Run:
+
+1. **Requirements Installation:**
+
+    Make sure you have Python installed. Then, install the required libraries using pip:
+
+    ```
+    pip install -r requirements.txt
+    ```
+
+
+2. **Execution:**
+
+    Run the script using Python:
+
+    ```
+    python Search.py
+    ```
+
+    Make sure you're in the directory where `Search.py` is located.
+
+3. **Docker:**
+
+    Alternatively, you can run the bot using Docker. Ensure you have Docker installed and the Docker daemon is running. Then, build the Docker image:
+
+    ```
+    docker build -t search-bot .
+    ```
+
+    Once the image is built, you can run a container from it:
+
+    ```
+    docker run -d --name search-bot-container search-bot
+    ```
+
+    This will run the bot in a Docker container named `search-bot-container`.
+
+## Optimizations:
+
+- The code is optimized for performance, utilizing asynchronous programming with asyncio to handle multiple tasks concurrently.
+- It employs aiohttp for asynchronous HTTP requests, which improves efficiency when fetching web pages.
+- The code is designed to minimize downtime and maximize responsiveness, ensuring timely updates and notifications.
+
+## Commands:
+
+- `/allow <user_id>`: Authorize a user to access the bot.
+- `/deny <user_id>`: Deny authorization for a user.
+- `/help`: Display help information.
+- `/admin <user_id>`: Upgrade a user to admin status.
+- `/text <message>`: Send a message to all users.
+- `/textto <user_id> <message>`: Send a message to a specific user.
+- `/users`: Get a list of authorized users.
+- `/all`: Get a list of all users.
+- `/banned`: Get a list of banned users.
+- `/save`: Save bot data to files.
+- `/ban <user_id>`: Ban a user from accessing the bot.
+- `/free <user_id>`: Release a user from ban.
+- `/delete <user_id>`: Delete a user from the bot's records.
+
 
 ## Usage Local_Search.py
 

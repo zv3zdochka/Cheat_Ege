@@ -34,7 +34,11 @@ logging.basicConfig(filename='log.txt',
                     filemode='a',
                     format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
                     datefmt='%H:%M:%S',
-                    level=logging.DEBUG)
+                    level="DEBUG")
+
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+logging.getLogger("aiogram.event").setLevel(logging.CRITICAL)
+
 
 
 class PageChecker:

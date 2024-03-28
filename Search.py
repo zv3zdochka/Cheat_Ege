@@ -28,13 +28,14 @@ nicknames = {}
 dp = Dispatcher()
 bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
 first = True
+creator = 1363003331
 
 logger = logging.getLogger("log.txt")
+
 
 class PageChecker:
     def __init__(self, subject_name, targets, start):
         global first
-
 
         self.subject_name = subject_name
         self.targets = targets
@@ -107,14 +108,15 @@ class PageChecker:
 
         dif = {f'prob{i}': problems[i] for i in problems}
         self.current_num = int(requests.get(f'{self.subject_url}/test?a=generate', dif,
-                            allow_redirects=False).headers['location'].split('id=')[1].split('&nt')[0])
+                                            allow_redirects=False).headers['location'].split('id=')[1].split('&nt')[0])
 
     def generate_test_r(self):
         problems = {1: 1}
 
         dif = {f'prob{i}': problems[i] for i in problems}
         return int(requests.get(f'{self.subject_url}/test?a=generate', dif,
-                            allow_redirects=False).headers['location'].split('id=')[1].split('&nt')[0])
+                                allow_redirects=False).headers['location'].split('id=')[1].split('&nt')[0])
+
     @staticmethod
     def subject_url_by_name(name):
         subjects = {
@@ -137,114 +139,164 @@ class PageChecker:
         return subjects.get(name)
 
 
+async def send_to_admins(smt: str):
+    for admin in admins:
+        await bot.send_message(admin, smt)
+
+
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
     nicknames[str(message.chat.id)] = str(message.chat.username)
-
+    update_json()
     if message.chat.id in ban:
         pass
 
     elif message.chat.id not in admins and message.chat.id not in users:
         await message.answer(f"Hello, {hbold(message.from_user.full_name)} !\nAuthorization in progress.")
-        logging.info(f"User {message.chat.username} requests authorisation {datetime.datetime.now()}")
         auth_waiting.append(message.chat.id)
-        await bot.send_message(1363003331,
-                               f"New user requesting authorization \nId: {message.chat.id} \nName: {message.chat.username}")
+        await send_to_admins(
+            f"New user requesting authorization \nId: {message.chat.id} \nName: {message.chat.username}")
 
     elif message.chat.id not in admins and message.chat.id in users:
-        await message.answer(f"Hello, {hbold(message.from_user.full_name)}! You are authorized, wait for updates.")
-        logging.info(f"User {message.chat.username} authorised {datetime.datetime.now()}")
+        await message.answer(f"Hello, {hbold(message.from_user.full_name)}! You are authorized, wait for test.")
+
     elif message.chat.id in admins:
         await message.answer(f"Hello, {hbold(message.from_user.full_name)} !\n"
-                             f"You are an admin.\n")
+                             f"You are an admin.\n "
+                             f"Search is running\n")
         if auth_waiting:
             await message.answer(f"Waiting for authorization:\n")
             for i in auth_waiting:
-                await message.answer(i)
+                await message.answer(str(i))
 
 
 @dp.message()
 async def echo_handler(message: types.Message) -> None:
     nicknames[str(message.chat.id)] = str(message.chat.username)
-
+    update_json()
     if message.chat.id in ban:
         pass
 
     elif message.chat.id not in admins:
-        await message.answer("Only admins can chat with the bot.")
-        logging.info(f"User {message.chat.username} messages {message.text} on time {datetime.datetime.now()}")
+        await message.answer("Only admins can chat with the bot.\n"
+                             "If you want to tell something to admins or to add the teacher write to: @sugarpups010\n"
+                             "If you want respect from historic person use /respect.")
+
     else:
         text = message.text.split()
-        if text[0] == 'allow':
+        if text[0] == '/allow':
 
             if int(text[1]) in auth_waiting:
                 users.append(int(text[1]))
                 auth_waiting.remove(int(text[1]))
                 await bot.send_message(int(text[1]), str("You are authorized! \nEnjoy!"))
-                await bot.send_message(1363003331, f"New user authorized {text[1]}")
+                await send_to_admins(f"New user authorized {text[1]} by {message.chat.id}")
                 update_json()
 
             else:
                 await message.answer("No such user, waiting for authorization.")
 
-        elif text[0] == 'deny':
+        elif text[0] == '/deny':
             if int(text[1]) in auth_waiting:
                 auth_waiting.remove(int(text[1]))
                 await bot.send_message(int(text[1]), str("Permission denied."))
-                await bot.send_message(1363003331, f"Authorisation of user {text[1]} denied")
-                logging.info(f"User`s {nicknames.get(str(text[1]))} request denied {datetime.datetime.now()}")
+                await bot.send_message(message.chat.id, f"Authorisation of user {text[1]} denied")
+                await bot.send_message(creator, f"User {message.chat.id} denied {int(text[1])}.")
+
                 update_json()
             else:
                 await message.answer("No such user, waiting for authorization.")
 
-        elif text[0] == 'text':
+        elif text[0] == '/help':
+            await bot.send_message(message.chat.id, "God bless you!")
 
-            await send_users(' '.join(text[1:]))
+        elif text[0] == '/admin':
+            if message.chat.id == creator:
+                if int(text[1]) in admins:
+                    await bot.send_message(message.chat.id, "Users is already an admin.")
+                elif int(text[1]) not in users:
+                    await bot.send_message(message.chat.id, "Wrong user.")
 
-        elif text[0] == 'users':
-            await bot.send_message(1363003331, str(users))
+                elif int(text[1]) in ban:
+                    await bot.send_message(message.chat.id, 'User in ban')
 
-        elif text[0] == 'all':
-            await bot.send_message(1363003331, str(nicknames))
+                elif int(text[1]) in users:
+                    admins.append(int(text[1]))
+                    await send_to_admins(f"User {int(text[1])} upgraded to admin by {message.chat.id}")
+                    await bot.send_message(int(text[1]), "Now you`re an admin. Enjoy...")
 
-        elif text[0] == 'banned':
-            await bot.send_message(1363003331, str(ban))
+            else:
+                await bot.send_message(message.chat.id, "Only the creator can make admins.")
+                await bot.send_message(creator, f"User {message.chat.id} tried to make admin user {int(text[1])}.")
 
-        elif text[0] == 'save':
-            await bot.send_document(1363003331, FSInputFile(path='data.json'))
-            await bot.send_document(1363003331, FSInputFile(path='users.json'))
-            await bot.send_document(1363003331, FSInputFile(path='log.txt'))
-            await bot.send_document(1363003331, FSInputFile(path='found.txt'))
+        elif text[0] == '/text':
+            await tell_users(' '.join(text[1:]))
+            if message.chat.id != creator:
+                await bot.send_message(creator, f"User {message.chat.id} text to all {' '.join(text[1:])}.")
 
-        elif text[0] == 'ban':
-            if int(text[1]) in ban:
-                await bot.send_message(1363003331, f"User {text[1]} already banned")
-            ban.append(int(text[1]))
 
+        elif text[0] == '/textto':
             try:
-                users.remove(int(text[1]))
-            except ValueError:
-                pass
+                if int(text[1]) not in users:
+                    await bot.send_message(message.chat.id, "No such user.")
+                else:
+                    await bot.send_message(int(text[1]), ' '.join(text[2:]))
+                    if int(text[1]) != creator:
+                        await bot.send_message(creator,
+                                               f"User {message.chat.id} texted to {text[1]} this {' '.join(text[2:])}.")
 
-            await bot.send_message(1363003331, f"User {text[1]} was successfully banned. ")
-            update_json()
-            logging.info(f"User`s {nicknames.get(str(text[1]))} banned {datetime.datetime.now()}")
+            except Exception:
+                await bot.send_message(message.chat.id, f"No such command, use /help")
+        elif text[0] == '/users':
+            await bot.send_message(message.chat.id, str(users))
 
-        elif text[0] == 'free':
+        elif text[0] == '/all':
+            await bot.send_message(message.chat.id, str(nicknames))
+
+        elif text[0] == '/banned':
+            await bot.send_message(message.chat.id, str(ban))
+
+        elif text[0] == '/save':
+            await bot.send_document(message.chat.id, FSInputFile(path='data.json'))
+            await bot.send_document(message.chat.id, FSInputFile(path='users.json'))
+            await bot.send_document(message.chat.id, FSInputFile(path='log.txt'))
+            await bot.send_document(message.chat.id, FSInputFile(path='found.txt'))
+            if message.chat.id != creator:
+                await bot.send_message(creator, f"User {message.chat.id} save files.")
+
+        elif text[0] == '/ban':
+            if int(text[1]) == creator:
+                await bot.send_message(message.chat.id, "You can`t ban the creator.")
+                await bot.send_message(creator, f"User {message.chat.id} tried to ban you.")
+            else:
+                ban.append(int(text[1]))
+                try:
+                    users.remove(int(text[1]))
+                    admins.remove(int(text[1]))
+                except ValueError:
+                    pass
+                finally:
+                    await send_to_admins(f"User {text[1]} was banned by {message.chat.id}")
+                    update_json()
+
+        elif text[0] == '/free':
             ban.remove(int(text[1]))
-            await bot.send_message(1363003331, f"User {text[1]} is free. ")
+            await bot.send_message(message.chat.id, f"User {text[1]} is free. ")
+            await send_to_admins(f"User {text[1]} released from ban by {message.chat.id}")
             update_json()
-            logging.info(f"User`s {nicknames.get(str(text[1]))} is free {datetime.datetime.now()}")
 
-        elif text[0] == 'delete':
-            await bot.send_message(int(text[1]), 'Administrator deleted you.')
-            users.remove(int(text[1]))
-            await bot.send_message(1363003331, f"User {text[1]} was successfully deleted. ")
-            update_json()
-            logging.info(f"User`s {nicknames.get(str(text[1]))} deleted {datetime.datetime.now()}")
+        elif text[0] == '/delete':
+            if int(text[1]) == creator:
+                await bot.send_message(message.chat.id, "You can`t delete the creator.")
+                await bot.send_message(creator, f"User {message.chat.id} tried to delete you.")
+            else:
+                await bot.send_message(int(text[1]), 'Administrator deleted you.')
+                users.remove(int(text[1]))
+                await send_to_admins(f"User {text[1]} was successfully deleted by {message.chat.id}")
+                update_json()
 
         else:
-            await bot.send_message(1363003331, f"No such command")
+            await bot.send_message(message.chat.id, f"No such command, use /help")
 
 
 def update_json():
@@ -261,10 +313,9 @@ def update_json():
         exit(e)
 
 
-async def send_users(text: str):
+async def tell_users(text: str):
     for i in users:
         await bot.send_message(i, text)
-    logging.info(f"Message {text} sent to users {datetime.datetime.now()}")
 
 
 async def main() -> None:
@@ -274,7 +325,7 @@ async def main() -> None:
 async def broadcaster(st: str):
     logging.info(f"Broadcast {st} {datetime.datetime.now()}")
     try:
-        await send_users(st)
+        await tell_users(st)
     except Exception as e:
         exit(e)
 

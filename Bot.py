@@ -11,7 +11,7 @@ from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
 import json
 
-TOKEN = "7104080784:AAFiU0STuHAsW-KsFOF5cwVozmdn1UCflB0" # Token from Bot Father
+TOKEN = "7104080784:AAFiU0STuHAsW-KsFOF5cwVozmdn1UCflB0"  # Token from Bot Father
 auth_waiting = []
 users = []
 admins = []
@@ -19,7 +19,8 @@ ban = []
 nicknames = {}
 dp = Dispatcher()
 bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
-creator = 1363003331 # Your Creator id
+creator = 1363003331  # Your Creator id
+
 
 async def send_to_admins(smt: str):
     for admin in admins:

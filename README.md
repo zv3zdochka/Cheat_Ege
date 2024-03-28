@@ -52,7 +52,7 @@ Project EGE is aimed at finding test variants created by teachers immediately af
 
 ## Important
 
-- Make sure you have access to the sdamgia.ru website.
+- Make sure you have access to the sdamgia.ru website, you have to use russian ip.
 - Before using, ensure that your IP is not being blocked on the sdamgia.ru website.
 
 ## Usage Local_Search_async.py
@@ -62,8 +62,7 @@ Project EGE is aimed at finding test variants created by teachers immediately af
 ```json
 {
   "subject_name1": [["target","target"], 123],
-  "subject_name2": [["target","target"], 234],
-  ...
+  "subject_name2": [["target","target"], 234]
 }
 ```
 
@@ -86,7 +85,7 @@ Ensure that you pass the correct filename (`data.json`) as an argument.
 ## Important
 
 - Ensure that the JSON file (`data.json`) exists and contains the required information in the correct format.
-- Make sure you have access to the sdamgia.ru website.
+- Make sure you have access to the sdamgia.ru website, you have to use russian ip.
 - Before using, ensure that your IP is not being blocked on the sdamgia.ru website.
 
 # Bot.py

@@ -297,6 +297,7 @@ async def echo_handler(message: types.Message) -> None:
             else:
                 await bot.send_message(int(text[1]), 'Administrator deleted you.')
                 users.remove(int(text[1]))
+                admins.remove(int(text[1]))
                 await send_to_admins(f"User {text[1]} was successfully deleted by {message.chat.id}")
                 update_json()
 
@@ -355,6 +356,7 @@ async def search():
                 logging.info(f"Test {j} found in subject {pch.subject_name}.")
                 await broadcaster(f"Subject: {pch.subject_name}\n"
                                   f"Id: {j[0]}\n"
+                                  f"Url: {pch.subject_url}/test?id={j[0]}\n"
                                   f"Target: {j[1]}")
 
                 with open('found.txt', 'a') as f:

@@ -177,3 +177,5 @@ cython_debug/
 /data.txt
 /settings.yml
 /main.py
+/leacked.txt
+/set.yml

@@ -1,3 +1,0 @@
-he@gmail.com
-123
-login_url = 'https://ege.sdamgia.ru/newapi/login'

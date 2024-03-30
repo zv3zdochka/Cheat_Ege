@@ -1,8 +1,0 @@
-# Your browser
-# Supports Firefox, Chrome, Edge
-BROWSER: Firefox
-
-# Your ReshuEGE account login and password
-PROFILE:
-    EMAIL: "he@gmail.com"
-    PASSWORD: "123"

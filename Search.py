@@ -234,6 +234,8 @@ async def echo_handler(message: types.Message) -> None:
                 await bot.send_message(message.chat.id, "Only the creator can make admins.")
                 await bot.send_message(creator, f"User {message.chat.id} tried to make admin user {int(text[1])}.")
 
+
+
         elif text[0] == '/text':
             await tell_users(' '.join(text[1:]))
             if message.chat.id != creator:
@@ -246,7 +248,7 @@ async def echo_handler(message: types.Message) -> None:
                     await bot.send_message(message.chat.id, "No such user.")
                 else:
                     await bot.send_message(int(text[1]), ' '.join(text[2:]))
-                    if int(text[1]) != creator:
+                    if message.chat.id != creator:
                         await bot.send_message(creator,
                                                f"User {message.chat.id} texted to {text[1]} this {' '.join(text[2:])}.")
 

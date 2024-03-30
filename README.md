@@ -33,7 +33,8 @@ Project EGE is aimed at finding test variants created by teachers immediately af
 
 1. If you want to run the bot locally, you likely need to use either `Local_Search.py` or `Local_Search_async.py`. Choose the appropriate script based on your requirements and run it using Python.
 
-2. If you want to run Search.py on Yandex cloud virtual machine look VM.md
+2. If you want to run Search.py on Yandex cloud virtual machine visit VM.md.
+
 ## Search.py
 
 ## How to Run:

@@ -40,7 +40,6 @@ logging.getLogger("urllib3").setLevel(logging.WARNING)
 logging.getLogger("aiogram.event").setLevel(logging.CRITICAL)
 
 
-
 class PageChecker:
     def __init__(self, subject_name, targets, start=-1):
         self.subject_name = subject_name
@@ -144,9 +143,7 @@ class PageChecker:
         return subjects.get(name)
 
 
-async def send_to_admins(smt: str):
-    for admin in admins:
-        await bot.send_message(admin, smt)
+
 
 
 @dp.message(CommandStart())
@@ -163,7 +160,7 @@ async def command_start_handler(message: Message) -> None:
             f"New user requesting authorization \nId: {message.chat.id} \nName: {message.chat.username}")
 
     elif message.chat.id not in admins and message.chat.id in users:
-        await message.answer(f"Hello, {hbold(message.from_user.full_name)}! You are authorized, wait for test.")
+        await message.answer(f"Hello, {hbold(message.from_user.full_name)}! You are authorized, wait for new tests.")
 
     elif message.chat.id in admins:
         await message.answer(f"Hello, {hbold(message.from_user.full_name)} !\n"
@@ -189,71 +186,149 @@ async def echo_handler(message: types.Message) -> None:
 
     else:
         text = message.text.split()
-        if text[0] == '/allow':
+        if len(text) == 2:
+            if text[0] == '/allow':
 
-            if int(text[1]) in auth_waiting:
-                users.append(int(text[1]))
-                auth_waiting.remove(int(text[1]))
-                await bot.send_message(int(text[1]), str("You are authorized! \nEnjoy!"))
-                await send_to_admins(f"New user authorized {text[1]} by {message.chat.id}")
-                update_json()
+                if int(text[1]) in auth_waiting:
+                    users.append(int(text[1]))
+                    auth_waiting.remove(int(text[1]))
+                    await bot.send_message(int(text[1]), str("You are authorized! \nEnjoy!"))
+                    await send_to_admins(f"New user authorized {text[1]} by {message.chat.id}")
+                    update_json()
 
+                else:
+                    await message.answer("No such user, waiting for authorization.")
             else:
-                await message.answer("No such user, waiting for authorization.")
+                await bot.send_message(message.chat.id, f"No such command, use /help")
 
         elif text[0] == '/deny':
-            if int(text[1]) in auth_waiting:
-                auth_waiting.remove(int(text[1]))
-                await bot.send_message(int(text[1]), str("Permission denied."))
-                await bot.send_message(message.chat.id, f"Authorisation of user {text[1]} denied")
-                await bot.send_message(creator, f"User {message.chat.id} denied {int(text[1])}.")
+            if len(text) == 2:
 
-                update_json()
+                if int(text[1]) in auth_waiting:
+                    auth_waiting.remove(int(text[1]))
+                    await bot.send_message(int(text[1]), str("Permission denied."))
+                    await bot.send_message(message.chat.id, f"Authorisation of user {text[1]} denied")
+                    await bot.send_message(creator, f"User {message.chat.id} denied {int(text[1])}.")
+
+                    update_json()
+                else:
+                    await message.answer("No such user, waiting for authorization.")
             else:
-                await message.answer("No such user, waiting for authorization.")
+                await bot.send_message(message.chat.id, f"No such command, use /help")
 
         elif text[0] == '/help':
             await bot.send_message(message.chat.id, "God bless you!")
-
-        elif text[0] == '/admin':
-            if message.chat.id == creator:
-                if int(text[1]) in admins:
-                    await bot.send_message(message.chat.id, "Users is already an admin.")
-                elif int(text[1]) not in users:
-                    await bot.send_message(message.chat.id, "Wrong user.")
-
-                elif int(text[1]) in ban:
-                    await bot.send_message(message.chat.id, 'User in ban')
-
-                elif int(text[1]) in users:
-                    admins.append(int(text[1]))
-                    await send_to_admins(f"User {int(text[1])} upgraded to admin by {message.chat.id}")
-                    await bot.send_message(int(text[1]), "Now you`re an admin. Enjoy...")
-
+            if message.chat.id not in admins:
+                await message.answer("Only admins can chat with the bot.\n"
+                                     "If you want to tell something to admins or to add the teacher write to: "
+                                     "@sugarpups010")
             else:
-                await bot.send_message(message.chat.id, "Only the creator can make admins.")
-                await bot.send_message(creator, f"User {message.chat.id} tried to make admin user {int(text[1])}.")
+                pass
+                # SEND INSTRUCTION FILE
 
+        elif text[0] == '/make-admin':
+            if len(text) == 2:
+                if message.chat.id == creator:
+                    if int(text[1]) in admins:
+                        await bot.send_message(message.chat.id, "Users is already an admin.")
+                    elif int(text[1]) not in users:
+                        await bot.send_message(message.chat.id, "Wrong user.")
 
+                    elif int(text[1]) in ban:
+                        await bot.send_message(message.chat.id, 'User in ban')
+
+                    elif int(text[1]) in users:
+                        admins.append(int(text[1]))
+                        await send_to_admins(f"User {int(text[1])} upgraded to admin by {message.chat.id}")
+                        await bot.send_message(int(text[1]), "Now you`re an admin. Enjoy...")
+
+                else:
+                    await bot.send_message(message.chat.id, "Only the creator can make admins.")
+                    await bot.send_message(creator, f"User {message.chat.id} tried to make admin user {int(text[1])}.")
+            else:
+                await bot.send_message(message.chat.id, f"No such command, use /help")
+
+        elif text[0] == 'del-admin':
+            if len(text) == 2:
+                if message.chat.id == creator:
+                    id = int(text[1])
+                    if id in admins:
+                        admins.remove(id)
+                        await bot.send_message(message.chat.id, f"Successful delete {id} from admins.")
+                        await bot.send_message(id, "You`re not an admin again.")
+                    else:
+                        await bot.send_message(message.chat.id, "No such user in admins.")
+                else:
+                    await bot.send_message(message.chat.id, "Only the creator can delete admins.")
+            else:
+                await bot.send_message(message.chat.id, f"No such command, use /help")
 
         elif text[0] == '/text':
-            await tell_users(' '.join(text[1:]))
-            if message.chat.id != creator:
-                await bot.send_message(creator, f"User {message.chat.id} text to all {' '.join(text[1:])}.")
-
-
-        elif text[0] == '/textto':
-            try:
-                if int(text[1]) not in users:
-                    await bot.send_message(message.chat.id, "No such user.")
-                else:
-                    await bot.send_message(int(text[1]), ' '.join(text[2:]))
-                    if message.chat.id != creator:
-                        await bot.send_message(creator,
-                                               f"User {message.chat.id} texted to {text[1]} this {' '.join(text[2:])}.")
-
-            except Exception:
+            if len(text) == 2:
+                await tell_users(' '.join(text[1:]))
+                if message.chat.id != creator:
+                    await bot.send_message(creator, f"User {message.chat.id} text to all {' '.join(text[1:])}.")
+            else:
                 await bot.send_message(message.chat.id, f"No such command, use /help")
+
+        elif text[0] == '/text-to':
+            if len(text) == 3:
+                try:
+                    if int(text[1]) not in users:
+                        await bot.send_message(message.chat.id, "No such user.")
+                    else:
+                        await bot.send_message(int(text[1]), ' '.join(text[2:]))
+                        if message.chat.id != creator:
+                            await bot.send_message(creator,
+                                                   f"User {message.chat.id} texted to {text[1]} this {' '.join(text[2:])}.")
+
+                except Exception:
+                    await bot.send_message(message.chat.id, f"No such command, use /help")
+            else:
+                await bot.send_message(message.chat.id, f"No such command, use /help")
+
+        elif text[0] == '/ban':
+            if len(text) == 2:
+                if int(text[1]) == creator:
+                    await bot.send_message(message.chat.id, "You can`t ban the creator.")
+                    await bot.send_message(creator, f"User {message.chat.id} tried to ban you.")
+                else:
+                    ban.append(int(text[1]))
+                    try:
+                        users.remove(int(text[1]))
+                        admins.remove(int(text[1]))
+                    except ValueError:
+                        pass
+                    finally:
+                        await send_to_admins(f"User {text[1]} was banned by {message.chat.id}")
+                        update_json()
+            else:
+                await bot.send_message(message.chat.id, f"No such command, use /help")
+
+        elif text[0] == '/free':
+            if len(text) == 2:
+                ban.remove(int(text[1]))
+                await bot.send_message(message.chat.id, f"User {text[1]} is free. ")
+                await send_to_admins(f"User {text[1]} released from ban by {message.chat.id}")
+                update_json()
+            else:
+                await bot.send_message(message.chat.id, f"No such command, use /help")
+
+
+        elif text[0] == '/delete':
+            if len(text) == 2:
+                if int(text[1]) == creator:
+                    await bot.send_message(message.chat.id, "You can`t delete the creator.")
+                    await bot.send_message(creator, f"User {message.chat.id} tried to delete you.")
+                else:
+                    await bot.send_message(int(text[1]), 'Administrator deleted you.')
+                    users.remove(int(text[1]))
+                    admins.remove(int(text[1]))
+                    await send_to_admins(f"User {text[1]} was successfully deleted by {message.chat.id}")
+                    update_json()
+            else:
+                await bot.send_message(message.chat.id, f"No such command, use /help")
+
         elif text[0] == '/users':
             await bot.send_message(message.chat.id, str(users))
 
@@ -271,38 +346,6 @@ async def echo_handler(message: types.Message) -> None:
             if message.chat.id != creator:
                 await bot.send_message(creator, f"User {message.chat.id} save files.")
 
-        elif text[0] == '/ban':
-            if int(text[1]) == creator:
-                await bot.send_message(message.chat.id, "You can`t ban the creator.")
-                await bot.send_message(creator, f"User {message.chat.id} tried to ban you.")
-            else:
-                ban.append(int(text[1]))
-                try:
-                    users.remove(int(text[1]))
-                    admins.remove(int(text[1]))
-                except ValueError:
-                    pass
-                finally:
-                    await send_to_admins(f"User {text[1]} was banned by {message.chat.id}")
-                    update_json()
-
-        elif text[0] == '/free':
-            ban.remove(int(text[1]))
-            await bot.send_message(message.chat.id, f"User {text[1]} is free. ")
-            await send_to_admins(f"User {text[1]} released from ban by {message.chat.id}")
-            update_json()
-
-        elif text[0] == '/delete':
-            if int(text[1]) == creator:
-                await bot.send_message(message.chat.id, "You can`t delete the creator.")
-                await bot.send_message(creator, f"User {message.chat.id} tried to delete you.")
-            else:
-                await bot.send_message(int(text[1]), 'Administrator deleted you.')
-                users.remove(int(text[1]))
-                admins.remove(int(text[1]))
-                await send_to_admins(f"User {text[1]} was successfully deleted by {message.chat.id}")
-                update_json()
-
         else:
             await bot.send_message(message.chat.id, f"No such command, use /help")
 
@@ -319,6 +362,14 @@ def update_json():
             del data
     except Exception as e:
         exit(e)
+
+
+async def send_to_admins(smt: str, ex=-1):
+    send_list = admins
+    if ex != -1:
+        send_list.remove(ex)
+    for admin in send_list:
+        await bot.send_message(admin, smt)
 
 
 async def tell_users(text: str):

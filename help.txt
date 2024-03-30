@@ -1,0 +1,31 @@
+Available commands and their descriptions:
+
+/start - Initiates interaction with the bot. If the user is not authorized, it prompts for authorization. If the user is authorized, it greets the user or notifies the user about the ongoing tests.
+
+/allow <user_id> - Authorizes a user with the provided user ID. Only accessible to admins.
+
+/deny <user_id> - Denies authorization for a user with the provided user ID. Only accessible to admins.
+
+/help - Provides help instructions to the user. If the user is not an admin, it informs them that only admins can use the bot. If the user is an admin, it provides admin-specific instructions.
+
+/make_admin <user_id> - Grants admin privileges to the user with the provided user ID. Only accessible to the creator.
+
+/del_admin <user_id> - Revokes admin privileges from the user with the provided user ID. Only accessible to the creator.
+
+/text <message> - Sends a message to all users. Only accessible to admins.
+
+/text_to <user_id> <message> - Sends a message to a specific user identified by the provided user ID. Only accessible to admins.
+
+/ban <user_id> - Bans the user with the provided user ID, preventing them from using the bot. Only accessible to admins.
+
+/free <user_id> - Releases a user from the ban. Only accessible to admins.
+
+/delete <user_id> - Deletes a user from the authorized user list. Only accessible to admins.
+
+/users - Displays a list of authorized users. Only accessible to admins.
+
+/all - Displays a list of all users, including authorized and unauthorized ones. Only accessible to admins.
+
+/banned - Displays a list of banned users. Only accessible to admins.
+
+/save - Sends files containing user data and logs to the user who invokes the command. Only accessible to admins.

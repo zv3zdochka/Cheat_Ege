@@ -4,6 +4,7 @@ COPY Search.py .
 COPY requirements.txt .
 COPY data.json .
 COPY log.txt .
+COPY help.txt .
 COPY found.txt .
 COPY users.json .
 RUN pip install -r requirements.txt

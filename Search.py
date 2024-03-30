@@ -143,9 +143,6 @@ class PageChecker:
         return subjects.get(name)
 
 
-
-
-
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
     nicknames[str(message.chat.id)] = str(message.chat.username)
@@ -178,17 +175,17 @@ async def echo_handler(message: types.Message) -> None:
     update_json()
     if message.chat.id in ban:
         pass
-
+    elif message.chat.id not in users:
+        await message.answer("You`re not authorised. Use /start. ")
     elif message.chat.id not in admins:
         await message.answer("Only admins can chat with the bot.\n"
-                             "If you want to tell something to admins or to add the teacher write to: @sugarpups010\n"
-                             "If you want respect from historic person use /respect.")
+                             "If you want to tell something to admins or to add the teacher write to: @sugarpups010\n")
 
     else:
         text = message.text.split()
-        if len(text) == 2:
-            if text[0] == '/allow':
 
+        if text[0] == '/allow':
+            if len(text) == 2:
                 if int(text[1]) in auth_waiting:
                     users.append(int(text[1]))
                     auth_waiting.remove(int(text[1]))
@@ -217,16 +214,14 @@ async def echo_handler(message: types.Message) -> None:
                 await bot.send_message(message.chat.id, f"No such command, use /help")
 
         elif text[0] == '/help':
-            await bot.send_message(message.chat.id, "God bless you!")
             if message.chat.id not in admins:
                 await message.answer("Only admins can chat with the bot.\n"
                                      "If you want to tell something to admins or to add the teacher write to: "
                                      "@sugarpups010")
             else:
-                pass
-                # SEND INSTRUCTION FILE
+                await bot.send_document(message.chat.id, FSInputFile(path='help.txt'))
 
-        elif text[0] == '/make-admin':
+        elif text[0] == '/make_admin':
             if len(text) == 2:
                 if message.chat.id == creator:
                     if int(text[1]) in admins:
@@ -248,7 +243,7 @@ async def echo_handler(message: types.Message) -> None:
             else:
                 await bot.send_message(message.chat.id, f"No such command, use /help")
 
-        elif text[0] == 'del-admin':
+        elif text[0] == '/del_admin':
             if len(text) == 2:
                 if message.chat.id == creator:
                     id = int(text[1])
@@ -264,27 +259,21 @@ async def echo_handler(message: types.Message) -> None:
                 await bot.send_message(message.chat.id, f"No such command, use /help")
 
         elif text[0] == '/text':
-            if len(text) == 2:
-                await tell_users(' '.join(text[1:]))
-                if message.chat.id != creator:
-                    await bot.send_message(creator, f"User {message.chat.id} text to all {' '.join(text[1:])}.")
-            else:
-                await bot.send_message(message.chat.id, f"No such command, use /help")
+            await tell_users(' '.join(text[1:]))
+            if message.chat.id != creator:
+                await bot.send_message(creator, f"User {message.chat.id} text to all {' '.join(text[1:])}.")
 
-        elif text[0] == '/text-to':
-            if len(text) == 3:
-                try:
-                    if int(text[1]) not in users:
-                        await bot.send_message(message.chat.id, "No such user.")
-                    else:
-                        await bot.send_message(int(text[1]), ' '.join(text[2:]))
-                        if message.chat.id != creator:
-                            await bot.send_message(creator,
-                                                   f"User {message.chat.id} texted to {text[1]} this {' '.join(text[2:])}.")
+        elif text[0] == '/text_to':
+            try:
+                if int(text[1]) not in users:
+                    await bot.send_message(message.chat.id, "No such user.")
+                else:
+                    await bot.send_message(int(text[1]), ' '.join(text[2:]))
+                    if message.chat.id != creator:
+                        await bot.send_message(creator,
+                                               f"User {message.chat.id} texted to {text[1]} this {' '.join(text[2:])}.")
 
-                except Exception:
-                    await bot.send_message(message.chat.id, f"No such command, use /help")
-            else:
+            except Exception:
                 await bot.send_message(message.chat.id, f"No such command, use /help")
 
         elif text[0] == '/ban':
@@ -313,7 +302,6 @@ async def echo_handler(message: types.Message) -> None:
                 update_json()
             else:
                 await bot.send_message(message.chat.id, f"No such command, use /help")
-
 
         elif text[0] == '/delete':
             if len(text) == 2:
@@ -418,7 +406,6 @@ async def search():
             n_d[1] = pch.current_num
             data[pch.subject_name] = n_d
             del pch
-        print(data)
         with open('data.json', 'w') as file:
             json.dump(data, file, ensure_ascii=False)
 
@@ -445,10 +432,9 @@ if __name__ == "__main__":
     try:
         with open('users.json', 'r', errors='ignore') as file:
             data_bot = dict(json.load(file))
-            print(data_bot)
             users = data_bot.get('users')
             admins = data_bot.get('admins')
-            nicknames = dict(data_bot.get('nicknames'))
+            nicknames = data_bot.get('nicknames')
             ban = data_bot.get('ban')
 
     except FileNotFoundError:

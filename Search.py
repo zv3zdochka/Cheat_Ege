@@ -13,13 +13,21 @@ try:
     import json
     import logging
     import requests
+    import aiofiles
+    import os
+
+    import selenium.common.exceptions
+    from selenium.webdriver.common.by import By
+    from selenium import webdriver
+
 
 except ModuleNotFoundError:
     sys.exit("Required libraries are missing. Please install them using:\n"
              "pip install -r requirements.txt\n"
              "You can find the requirements.txt file at: https://github.com/zv3zdochka/Cheat_Ege.git")
 
-TOKEN = "7104080784:AAFiU0STuHAsW-KsFOF5cwVozmdn1UCflB0"
+# TOKEN = "7104080784:AAFiU0STuHAsW-KsFOF5cwVozmdn1UCflB0"
+TOKEN = "6837174253:AAHuMokKb3PNdbXbP3iMfTFL8C8xp8hMzr8"
 auth_waiting = []
 users = []
 admins = []
@@ -38,6 +46,30 @@ logging.basicConfig(filename='log.txt',
 
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 logging.getLogger("aiogram.event").setLevel(logging.CRITICAL)
+
+chrome_options = webdriver.ChromeOptions()
+
+settings = {
+    "recentDestinations": [{
+        "id": "Save as PDF",
+        "origin": "local",
+        "account": ""
+    }],
+    "selectedDestinationId": "Save as PDF",
+    "version": 2,
+    "isHeaderFooterEnabled": False,
+    "isCssBackgroundEnabled": True
+}
+
+chrome_options.add_argument('--enable-print-browser')
+#chrome_options.add_argument('--headless')
+
+prefs = {
+    'printing.print_preview_sticky_settings.appState': json.dumps(settings),
+    'savefile.default_directory': r'C:\Users\batsi\PycharmProjects\Ege_Cheater'
+}
+chrome_options.add_argument('--kiosk-printing')
+chrome_options.add_experimental_option('prefs', prefs)
 
 
 class PageChecker:
@@ -141,6 +173,58 @@ class PageChecker:
             'hist': 'https://hist-ege.sdamgia.ru',
         }
         return subjects.get(name)
+
+
+class PdfLeaker:
+    def __init__(self, url):
+        self.driver = webdriver.Chrome(options=chrome_options)
+        self.url = url
+        self.login = "he@gmail.com"
+        self.password = "123"
+
+    async def log_in(self):
+        self.driver.get("https://ege.sdamgia.ru")
+        await asyncio.sleep(2)
+        while True:
+            try:
+                email_field = self.driver.find_element(By.ID, "email")
+                email_field.send_keys(self.login)
+                password_field = self.driver.find_element(By.ID, "current-password")
+                password_field.send_keys(self.password)
+                await asyncio.sleep(0.4)
+                password_field.submit()
+                await asyncio.sleep(0.4)
+                break
+            except selenium.common.exceptions.NoSuchElementException:
+                await asyncio.sleep(2)
+
+    async def leak(self):
+        self.driver.get(self.url)
+        await asyncio.sleep(2)
+        self.driver.find_element(By.CSS_SELECTOR, "input#cb_ans").click()
+        self.driver.find_element(By.CSS_SELECTOR, "input#cb_sol").click()
+        self.driver.execute_script('window.print();')
+        self.driver.close()
+
+    @staticmethod
+    async def do_file(old, new):
+        async with aiofiles.open(old, 'rb') as old_file:
+            async with aiofiles.open(new, 'wb') as new_file:
+                contents = await old_file.read()
+                await new_file.write(contents)
+
+    @staticmethod
+    async def remove(name):
+        os.remove(name)
+
+    async def run(self):
+        await self.log_in()
+        await self.leak()
+        old = self.url[8:].replace('?', '_').replace('/', '_') + '.pdf'
+        new = old.split('-')[0] + '_' + old.replace('=', '-').replace('&', '-').split('-')[2] + '.pdf'
+        await self.do_file(old, new)
+        await self.remove(old)
+        return new
 
 
 @dp.message(CommandStart())
@@ -365,16 +449,30 @@ async def tell_users(text: str):
         await bot.send_message(i, text)
 
 
+async def send_file(path: str):
+    for i in users:
+        try:
+            await bot.send_document(i, FSInputFile(path=path))
+        except Exception as e:
+            exit(e)
+
+
 async def main() -> None:
     await dp.start_polling(bot)
 
 
-async def broadcaster(st: str):
+async def broadcaster(st: str, file=False):
     logging.info(f"Broadcast {st}.")
-    try:
-        await tell_users(st)
-    except Exception as e:
-        exit(e)
+    if not file:
+        try:
+            await tell_users(st)
+        except Exception as e:
+            exit(e)
+    else:
+        try:
+            await send_file(st)
+        except Exception as e:
+            exit(e)
 
 
 async def search():
@@ -393,19 +491,24 @@ async def search():
             pch = PageChecker(key, value[0], value[1])
             await pch.search_from_to()
             for j in pch.founded:
-                print(j)
                 logging.info(f"Test {j} found in subject {pch.subject_name}.")
                 await broadcaster(f"Subject: {pch.subject_name}\n"
                                   f"Id: {j[0]}\n"
                                   f"Url: {pch.subject_url}/test?id={j[0]}\n"
                                   f"Target: {j[1]}")
-
+                url_l = f"{pch.subject_url}/test?id={j[0]}&print=true"
+                leaker = PdfLeaker(url_l)
+                path = await leaker.run()
+                await broadcaster(path, file=True)
                 with open('found.txt', 'a') as f:
                     f.write(f"Found in subject {j[0]}: {j[1]}. On time {datetime.datetime.now()}\n")
+                await leaker.remove(path)
+                del leaker
             n_d = data[pch.subject_name]
             n_d[1] = pch.current_num
             data[pch.subject_name] = n_d
             del pch
+
         with open('data.json', 'w') as file:
             json.dump(data, file, ensure_ascii=False)
 

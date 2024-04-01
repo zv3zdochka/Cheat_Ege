@@ -1,5 +1,8 @@
-import time
+import asyncio
 import json
+import asyncio
+import aiofiles
+import os
 
 import selenium.common.exceptions
 from selenium.webdriver.common.by import By
@@ -20,7 +23,7 @@ settings = {
 }
 
 chrome_options.add_argument('--enable-print-browser')
-#chrome_options.add_argument('--headless')
+# chrome_options.add_argument('--headless')
 
 prefs = {
     'printing.print_preview_sticky_settings.appState': json.dumps(settings),
@@ -37,44 +40,51 @@ class PdfLeaker:
         self.login = "he@gmail.com"
         self.password = "123"
 
-    def log_in(self):
+    async def log_in(self):
         self.driver.get("https://ege.sdamgia.ru")
-        time.sleep(3)
+        await asyncio.sleep(3)
         while True:
             try:
                 email_field = self.driver.find_element(By.ID, "email")
                 email_field.send_keys(self.login)
                 password_field = self.driver.find_element(By.ID, "current-password")
                 password_field.send_keys(self.password)
-                time.sleep(0.4)
+                await asyncio.sleep(0.4)
                 password_field.submit()
-                time.sleep(0.4)
+                await asyncio.sleep(0.4)
                 break
             except selenium.common.exceptions.NoSuchElementException:
-                time.sleep(2)
+                await asyncio.sleep(2)
 
-
-    def leak(self):
-        # self.driver.get(self.url)
-        # time.sleep(0.4)
-        #
-        # link = self.driver.find_element(By.LINK_TEXT, 'Версия для печати и копирования в MS Word')
-        #
-        # link.click()
-        # time.sleep(1)
+    async def leak(self):
         self.driver.get(f"{self.url}&print=true")
-        time.sleep(2)
+        await asyncio.sleep(2)
         self.driver.find_element(By.CSS_SELECTOR, "input#cb_ans").click()
         self.driver.find_element(By.CSS_SELECTOR, "input#cb_sol").click()
         self.driver.execute_script('window.print();')
         self.driver.close()
 
-    def run(self):
-        self.log_in()
-        self.leak()
+    async def do_file(self):
+        async with aiofiles.open(self.url, 'rb') as old_file:
+            async with aiofiles.open('math_74921366.pdf', 'wb') as new_file:
+                contents = await old_file.read()
+                await new_file.write(contents)
+        os.remove(self.url)
+
+    async def run(self):
+        await self.log_in()
+        await self.leak()
+        print(self.url)
+        print(r'math-ege.sdamgia.ru_test_id=74921366&print=true.pdf')
+        s = r'math-ege.sdamgia.ru_test_id=74921366&print=true.pdf'
+        await self.do_file()
         print('Requests completed')
 
 
-if __name__ == "__main__":
+async def main():
     solver = PdfLeaker('https://math-ege.sdamgia.ru/test?id=74921366')
-    solver.run()
+    await solver.run()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

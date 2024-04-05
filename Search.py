@@ -26,7 +26,6 @@ except ModuleNotFoundError:
              "pip install -r requirements.txt\n"
              "You can find the requirements.txt file at: https://github.com/zv3zdochka/Cheat_Ege.git")
 
-# TOKEN = "7104080784:AAFiU0STuHAsW-KsFOF5cwVozmdn1UCflB0"
 TOKEN = "6837174253:AAHuMokKb3PNdbXbP3iMfTFL8C8xp8hMzr8"
 auth_waiting = []
 users = []
@@ -62,7 +61,7 @@ settings = {
 }
 
 chrome_options.add_argument('--enable-print-browser')
-#chrome_options.add_argument('--headless')
+# chrome_options.add_argument('--headless')
 
 prefs = {
     'printing.print_preview_sticky_settings.appState': json.dumps(settings),
@@ -90,7 +89,6 @@ class PageChecker:
             return
 
         url = f"{self.subject_url}/test?id={page_id}"
-
         try:
             async with session.get(url) as response:
                 if response.status == 200:
@@ -143,15 +141,27 @@ class PageChecker:
         problems = {1: 1}
 
         dif = {f'prob{i}': problems[i] for i in problems}
-        self.current_num = int(requests.get(f'{self.subject_url}/test?a=generate', dif,
-                                            allow_redirects=False).headers['location'].split('id=')[1].split('&nt')[0])
+        while True:
+            try:
+                self.current_num = int(
+                    requests.get(f'{self.subject_url}/test?a=generate', dif, allow_redirects=False).headers[
+                        'location'].split('id=')[1].split('&nt')[0])
+                break
+            except Exception as errr:
+                logging.critical(f"Get current error {errr}.")
+                asyncio.sleep(60)
 
     def generate_test_r(self):
         problems = {1: 1}
 
         dif = {f'prob{i}': problems[i] for i in problems}
-        return int(requests.get(f'{self.subject_url}/test?a=generate', dif,
-                                allow_redirects=False).headers['location'].split('id=')[1].split('&nt')[0])
+        while True:
+            try:
+                return int(requests.get(f'{self.subject_url}/test?a=generate', dif,
+                                        allow_redirects=False).headers['location'].split('id=')[1].split('&nt')[0])
+            except Exception as errr:
+                logging.critical(f"Get current error {errr}.")
+            asyncio.sleep(60)
 
     @staticmethod
     def subject_url_by_name(name):
@@ -491,19 +501,20 @@ async def search():
             pch = PageChecker(key, value[0], value[1])
             await pch.search_from_to()
             for j in pch.founded:
+                print(j)
                 logging.info(f"Test {j} found in subject {pch.subject_name}.")
                 await broadcaster(f"Subject: {pch.subject_name}\n"
                                   f"Id: {j[0]}\n"
                                   f"Url: {pch.subject_url}/test?id={j[0]}\n"
                                   f"Target: {j[1]}")
-                url_l = f"{pch.subject_url}/test?id={j[0]}&print=true"
-                leaker = PdfLeaker(url_l)
-                path = await leaker.run()
-                await broadcaster(path, file=True)
-                with open('found.txt', 'a') as f:
-                    f.write(f"Found in subject {j[0]}: {j[1]}. On time {datetime.datetime.now()}\n")
-                await leaker.remove(path)
-                del leaker
+                # url_l = f"{pch.subject_url}/test?id={j[0]}&print=true"
+                # leaker = PdfLeaker(url_l)
+                # path = await leaker.run()
+                # await broadcaster(path, file=True)
+                # with open('found.txt', 'a') as f:
+                #     f.write(f"Found in subject {j[0]}: {j[1]}. On time {datetime.datetime.now()}\n")
+                # await leaker.remove(path)
+                # del leaker
             n_d = data[pch.subject_name]
             n_d[1] = pch.current_num
             data[pch.subject_name] = n_d

@@ -1,0 +1,19 @@
+[flake8]
+ignore =
+    # Line too long
+    E501,
+    # Module imported by unused
+    F401,
+    # Module level import not at top of file
+    E402
+
+exclude =
+    .venv,
+    venv,
+    .env,
+    env,
+    .vscode,
+    .git,
+    .github,
+    arduino,
+    raspberry/assets

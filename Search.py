@@ -141,27 +141,35 @@ class PageChecker:
         problems = {1: 1}
 
         dif = {f'prob{i}': problems[i] for i in problems}
+        n = 0
         while True:
+            if n == 5:
+                self.current_num += 20
             try:
                 self.current_num = int(
                     requests.get(f'{self.subject_url}/test?a=generate', dif, allow_redirects=False).headers[
                         'location'].split('id=')[1].split('&nt')[0])
                 break
             except Exception as errr:
-                logging.critical(f"Get current error {errr}.")
+                logging.critical(f"Get current error {errr}. Trying to find new page")
                 asyncio.sleep(60)
+                n += 1
 
     def generate_test_r(self):
         problems = {1: 1}
 
         dif = {f'prob{i}': problems[i] for i in problems}
+        n = 0
         while True:
+            if n == 5:
+                return -1
             try:
                 return int(requests.get(f'{self.subject_url}/test?a=generate', dif,
                                         allow_redirects=False).headers['location'].split('id=')[1].split('&nt')[0])
             except Exception as errr:
+                n += 1
                 logging.critical(f"Get current error {errr}.")
-            asyncio.sleep(60)
+                asyncio.sleep(60)
 
     @staticmethod
     def subject_url_by_name(name):
@@ -493,7 +501,10 @@ async def search():
         if first:
             for key, value in data.items():
                 pch = PageChecker(key, value[0])
-                data[key] = [value[0], pch.generate_test_r()]
+                te = pch.generate_test_r()
+                if te == -1:
+                    exit("Cant start, -1 in new test. Check connection.")
+                data[key] = [value[0], te]
                 del pch
             first = False
 

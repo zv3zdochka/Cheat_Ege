@@ -35,7 +35,9 @@ class PageChecker:
 
                     for target in self.targets:
                         if target in text:
+                            print(target, page_id)
                             return f"Target {target} found on page {page_id}"
+
 
                     if "JavaScript" in text:
                         return f"JavaScript detected on the page {id}"
@@ -69,7 +71,7 @@ class PageChecker:
         self.get_current_test_num()
         while self.start_id <= self.current_num:
             yield self.start_id
-            self.start_id += 1
+            self.start_id -= 1
         else:
             while True:
                 yield None

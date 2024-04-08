@@ -1,0 +1,18 @@
+name: pre-commit
+
+on:
+  push:
+  pull_request:
+    branches: ["master", "dev"]
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+      - name: install flake8
+        run: python3 -m pip install flake8
+      - name: run flake8
+        run: flake8 --append-config=".flake8"

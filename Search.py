@@ -26,7 +26,7 @@ except ModuleNotFoundError:
              "pip install -r requirements.txt\n"
              "You can find the requirements.txt file at: https://github.com/zv3zdochka/Cheat_Ege.git")
 
-TOKEN = "6837174253:AAHuMokKb3PNdbXbP3iMfTFL8C8xp8hMzr8"
+TOKEN = "7169283346:AAHEMvMCFT5aJrinsA2NOrcE0_Xadrjg9x4"
 auth_waiting = []
 users = []
 admins = []
@@ -518,12 +518,13 @@ async def search():
                                   f"Id: {j[0]}\n"
                                   f"Url: {pch.subject_url}/test?id={j[0]}\n"
                                   f"Target: {j[1]}")
+                with open('found.txt', 'a') as f:
+                    f.write(f"Found in subject {j[0]}: {j[1]}. On time {datetime.datetime.now()}\n")
                 # url_l = f"{pch.subject_url}/test?id={j[0]}&print=true"
                 # leaker = PdfLeaker(url_l)
                 # path = await leaker.run()
                 # await broadcaster(path, file=True)
-                # with open('found.txt', 'a') as f:
-                #     f.write(f"Found in subject {j[0]}: {j[1]}. On time {datetime.datetime.now()}\n")
+
                 # await leaker.remove(path)
                 # del leaker
             n_d = data[pch.subject_name]

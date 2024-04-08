@@ -180,6 +180,7 @@ def search_from_current_for_first():
     Search for targets from the current test number endlessly.
     """
     start_id = get_current_test_num(subject_name)
+
     start_time = time.time()
     main(id_generator_down, start_id, 0)
     elapsed_time = time.time() - start_time
@@ -224,7 +225,7 @@ if __name__ == "__main__":
     start = 55120100
     end = 7_439_3000
     subject_url = subject_url_by_name(subject_name)
-    # search_from_current_for_first() # Views all options from just created to the very first one
+    search_from_current_for_first() # Views all options from just created to the very first one
     # search_from_current_to_end(end)  # Views all options from just created to end
     search_from_to(start, end)  # Views all options from start to end
     # search_from_to_last(start)  # Views all options from start to just created

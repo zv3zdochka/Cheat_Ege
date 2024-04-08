@@ -1,9 +1,0 @@
-[
-  {
-    "proxyDict": {
-      "http": "45.11.20.11:3000",
-      "socks": "45.11.20.11:3001"
-    },
-    "auth": "HTTPProxyAuth('xj1DIJ', 'GgyGrVxW')"
-  }
-]

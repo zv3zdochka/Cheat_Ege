@@ -26,7 +26,7 @@ except ModuleNotFoundError:
              "pip install -r requirements.txt\n"
              "You can find the requirements.txt file at: https://github.com/zv3zdochka/Cheat_Ege.git")
 
-TOKEN = "7169283346:AAHEMvMCFT5aJrinsA2NOrcE0_Xadrjg9x4"
+TOKEN = "6837174253:AAHuMokKb3PNdbXbP3iMfTFL8C8xp8hMzr8"
 auth_waiting = []
 users = []
 admins = []
@@ -154,6 +154,8 @@ class PageChecker:
                 logging.critical(f"Get current error {errr}. Trying to find new page")
                 asyncio.sleep(60)
                 n += 1
+            finally:
+                n += 1
 
     def generate_test_r(self):
         problems = {1: 1}
@@ -170,6 +172,9 @@ class PageChecker:
                 n += 1
                 logging.critical(f"Get current error {errr}.")
                 asyncio.sleep(60)
+            finally:
+                n += 1
+
 
     @staticmethod
     def subject_url_by_name(name):

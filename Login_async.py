@@ -1,6 +1,5 @@
 import asyncio
 import json
-import asyncio
 import aiofiles
 import os
 
@@ -76,7 +75,7 @@ class PdfLeaker:
         await self.leak()
         print(self.url)
         print(r'math-ege.sdamgia.ru_test_id=74921366&print=true.pdf')
-        s = r'math-ege.sdamgia.ru_test_id=74921366&print=true.pdf'
+        # TODO: Add a secret feature to use it s = r'math-ege.sdamgia.ru_test_id=74921366&print=true.pdf'
         await self.do_file()
         print('Requests completed')
 

@@ -48,7 +48,7 @@ async def command_start_handler(message: Message) -> None:
                              f"You are an admin.\n "
                              f"Search is running\n")
         if auth_waiting:
-            await message.answer(f"Waiting for authorization:\n")
+            await message.answer("Waiting for authorization:\n")
             for i in auth_waiting:
                 await message.answer(str(i))
 
@@ -117,7 +117,6 @@ async def echo_handler(message: types.Message) -> None:
             if message.chat.id != creator:
                 await bot.send_message(creator, f"User {message.chat.id} text to all {' '.join(text[1:])}.")
 
-
         elif text[0] == '/textto':
             try:
                 if int(text[1]) not in users:
@@ -129,7 +128,7 @@ async def echo_handler(message: types.Message) -> None:
                                                f"User {message.chat.id} texted to {text[1]} this {' '.join(text[2:])}.")
 
             except Exception:
-                await bot.send_message(message.chat.id, f"No such command, use /help")
+                await bot.send_message(message.chat.id, "No such command, use /help")
         elif text[0] == '/users':
             await bot.send_message(message.chat.id, str(users))
 
@@ -179,7 +178,7 @@ async def echo_handler(message: types.Message) -> None:
                 update_json()
 
         else:
-            await bot.send_message(message.chat.id, f"No such command, use /help")
+            await bot.send_message(message.chat.id, "No such command, use /help")
 
 
 def update_json():

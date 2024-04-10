@@ -38,7 +38,6 @@ class PageChecker:
                             print(target, page_id)
                             return f"Target {target} found on page {page_id}"
 
-
                     if "JavaScript" in text:
                         return f"JavaScript detected on the page {id}"
 

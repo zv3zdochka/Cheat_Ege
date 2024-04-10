@@ -20,7 +20,7 @@ settings = {
 }
 
 chrome_options.add_argument('--enable-print-browser')
-#chrome_options.add_argument('--headless')
+# chrome_options.add_argument('--headless')
 
 prefs = {
     'printing.print_preview_sticky_settings.appState': json.dumps(settings),
@@ -52,7 +52,6 @@ class PdfLeaker:
                 break
             except selenium.common.exceptions.NoSuchElementException:
                 time.sleep(2)
-
 
     def leak(self):
         # self.driver.get(self.url)

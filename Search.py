@@ -15,6 +15,8 @@ try:
     import requests
     import aiofiles
     import os
+    from Errors import TimeOutError
+    import typing
 
     import selenium.common.exceptions
     from selenium.webdriver.common.by import By
@@ -28,10 +30,15 @@ except ModuleNotFoundError:
 
 TOKEN = "6837174253:AAHuMokKb3PNdbXbP3iMfTFL8C8xp8hMzr8"
 auth_waiting = []
+auth_waiting: typing.List[int]
 users = []
+users: typing.List[int]
 admins = []
+admins: typing.List[int]
 ban = []
+ban: typing.List[int]
 nicknames = {}
+nicknames: typing.Dict
 dp = Dispatcher()
 bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
 first = True
@@ -65,7 +72,7 @@ chrome_options.add_argument('--enable-print-browser')
 
 prefs = {
     'printing.print_preview_sticky_settings.appState': json.dumps(settings),
-    'savefile.default_directory': r'C:\Users\batsi\PycharmProjects\Ege_Cheater'
+    'savefile.default_directory': 'C:\\Users\\batsi\\PycharmProjects\\Ege_Cheater'
 }
 chrome_options.add_argument('--kiosk-printing')
 chrome_options.add_experimental_option('prefs', prefs)
@@ -82,7 +89,6 @@ class PageChecker:
             self.start_id = start
             self.founded = []
             self.current_num = 0
-            self.generate_test()
 
     async def check_page(self, session, page_id):
         if page_id is None:
@@ -137,7 +143,7 @@ class PageChecker:
             while True:
                 yield None
 
-    def generate_test(self):
+    async def generate_test(self):
         problems = {1: 1}
 
         dif = {f'prob{i}': problems[i] for i in problems}
@@ -152,12 +158,12 @@ class PageChecker:
                 break
             except Exception as errr:
                 logging.critical(f"Get current error {errr}. Trying to find new page")
-                asyncio.sleep(60)
+                await asyncio.sleep(60)
                 n += 1
             finally:
                 n += 1
 
-    def generate_test_r(self):
+    async def generate_test_r(self):
         problems = {1: 1}
 
         dif = {f'prob{i}': problems[i] for i in problems}
@@ -171,7 +177,7 @@ class PageChecker:
             except Exception as errr:
                 n += 1
                 logging.critical(f"Get current error {errr}.")
-                asyncio.sleep(60)
+                await asyncio.sleep(60)
             finally:
                 n += 1
 
@@ -455,7 +461,7 @@ def update_json():
             json.dump(data, f)
             del data
     except Exception as e:
-        exit(e)
+        sys.exit(str(e))
 
 
 async def send_to_admins(smt: str, ex=-1):
@@ -476,7 +482,7 @@ async def send_file(path: str):
         try:
             await bot.send_document(i, FSInputFile(path=path))
         except Exception as e:
-            exit(e)
+            sys.exit(str(e))
 
 
 async def main() -> None:
@@ -489,12 +495,12 @@ async def broadcaster(st: str, file=False):
         try:
             await tell_users(st)
         except Exception as e:
-            exit(e)
+            sys.exit(str(e))
     else:
         try:
             await send_file(st)
         except Exception as e:
-            exit(e)
+            sys.exit(str(e))
 
 
 async def search():
@@ -507,7 +513,7 @@ async def search():
                 pch = PageChecker(key, value[0])
                 te = pch.generate_test_r()
                 if te == -1:
-                    exit("Cant start, -1 in new test. Check connection.")
+                    sys.exit(-1)
                 data[key] = [value[0], te]
                 del pch
             first = False
@@ -569,7 +575,7 @@ if __name__ == "__main__":
 
     except FileNotFoundError:
         logging.critical("No users.json.")
-        exit("Add users.json file")
+        sys.exit("Add users.json file")
 
     async def run_all():
         await asyncio.gather(search(), main())

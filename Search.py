@@ -21,16 +21,20 @@ try:
     from selenium import webdriver
 
 
-except ModuleNotFoundError:
+except Exception as e:
+    print(e)
     sys.exit("Required libraries are missing. Please install them using:\n"
              "pip install -r requirements.txt\n"
              "You can find the requirements.txt file at: https://github.com/zv3zdochka/Cheat_Ege.git")
 
-TOKEN = "6837174253:AAHuMokKb3PNdbXbP3iMfTFL8C8xp8hMzr8"
+TOKEN = "7169283346:AAHEMvMCFT5aJrinsA2NOrcE0_Xadrjg9x4"
 auth_waiting = []
 users = []
 admins = []
 ban = []
+founded = []
+wait = False
+
 nicknames = {}
 dp = Dispatcher()
 bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
@@ -106,6 +110,8 @@ class PageChecker:
                     if "JavaScript" in text:
                         logging.warning(f"JavaScript on page {url}.")
                         return
+                elif response.status == 403:
+                    return 403
 
         except Exception as e:
             logging.warning(f"Exeption {e} on {url}.")
@@ -121,8 +127,10 @@ class PageChecker:
             chunk = [next(ids) for _ in range(50)]
             results = await self.fetch_all(chunk)
             for page_id, result in zip(chunk, results):
-                if result:
+                if result and result != 403:
                     self.founded.append([result[0], result[1]])
+                if result == 403:
+                    return -1
             if None in chunk:
                 break
 
@@ -151,9 +159,10 @@ class PageChecker:
                         'location'].split('id=')[1].split('&nt')[0])
                 break
             except Exception as errr:
-                logging.critical(f"Get current error {errr}. Trying to find new page")
-                asyncio.sleep(60)
-                n += 1
+                # logging.critical(f"Get current error {errr}. Trying to find new page")
+                # asyncio.sleep(60)
+                # n += 1
+                return 75355504
             finally:
                 n += 1
 
@@ -169,9 +178,10 @@ class PageChecker:
                 return int(requests.get(f'{self.subject_url}/test?a=generate', dif,
                                         allow_redirects=False).headers['location'].split('id=')[1].split('&nt')[0])
             except Exception as errr:
-                n += 1
-                logging.critical(f"Get current error {errr}.")
-                asyncio.sleep(60)
+                return 75355504
+                # n += 1
+                # logging.critical(f"Get current error {errr}.")
+                # asyncio.sleep(60)
             finally:
                 n += 1
 
@@ -303,6 +313,12 @@ async def echo_handler(message: types.Message) -> None:
                     await message.answer("No such user, waiting for authorization.")
             else:
                 await bot.send_message(message.chat.id, "No such command, use /help")
+
+        elif text[0] == '/status':
+            if wait:
+                await message.answer("Bot is waiting for cloudfare.")
+            else:
+                await message.answer("Bot successfully running.")
 
         elif text[0] == '/deny':
             if len(text) == 2:
@@ -468,7 +484,10 @@ async def send_to_admins(smt: str, ex=-1):
 
 async def tell_users(text: str):
     for i in users:
-        await bot.send_message(i, text)
+        try:
+            await bot.send_message(i, text)
+        except:
+            pass
 
 
 async def send_file(path: str):
@@ -497,53 +516,90 @@ async def broadcaster(st: str, file=False):
             exit(e)
 
 
+async def check_cloudfare(url):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            return response.status
+
+
+async def check_connection():
+    return await check_cloudfare("https://ege.sdamgia.ru/")
+
+
 async def search():
-    global first
+    global first, wait
     sleep_time = 15
     while True:
-        s_t = time.time()
-        if first:
+        status = await check_connection()
+        if status == 403:
+            if not wait:
+                await tell_users("Search stopped, waiting for cloudfare canceling.")
+                wait = True
+            await asyncio.sleep(5)
+            continue
+        elif status == 200:
+            if wait:
+                await tell_users("Search is running again:)))")
+                wait = False
+            s_t = time.time()
+            if first:
+                for key, value in data.items():
+                    pch = PageChecker(key, value[0])
+                    te = pch.generate_test_r()
+                    if te == -1:
+                        exit("Cant detect new test. Check connection.")
+                    data[key] = [value[0], te]
+                    del pch
+                first = False
+
             for key, value in data.items():
-                pch = PageChecker(key, value[0])
-                te = pch.generate_test_r()
-                if te == -1:
-                    exit("Cant start, -1 in new test. Check connection.")
-                data[key] = [value[0], te]
+                if wait:
+                    continue
+                pch = PageChecker(key, value[0], value[1])
+                p = await pch.search_from_to()
+                if p == -1:
+                    wait = True
+                    await tell_users("Search stopped, waiting for cloudfare canceling.")
+                    break
+
+                for j in pch.founded:
+                    if j not in founded:
+                        founded.append(j)
+                    else:
+                        continue
+                    logging.info(f"Test {j} found in subject {pch.subject_name}.")
+                    await broadcaster(f"Subject: {pch.subject_name}\n"
+                                      f"Id: {j[0]}\n"
+                                      f"Url: {pch.subject_url}/test?id={j[0]}\n"
+                                      f"Target: {j[1]}")
+                    with open('found.txt', 'a') as f:
+                        f.write(f"Found in subject {j[0]}: {j[1]}. On time {datetime.datetime.now()}\n")
+                    # url_l = f"{pch.subject_url}/test?id={j[0]}&print=true"
+                    # leaker = PdfLeaker(url_l)
+                    # path = await leaker.run()
+                    # await broadcaster(path, file=True)
+
+                    # await leaker.remove(path)
+                    # del leaker
+                n_d = data[pch.subject_name]
+                n_d[1] = pch.current_num
+                data[pch.subject_name] = n_d
                 del pch
-            first = False
 
-        for key, value in data.items():
-            pch = PageChecker(key, value[0], value[1])
-            await pch.search_from_to()
-            for j in pch.founded:
-                print(j)
-                logging.info(f"Test {j} found in subject {pch.subject_name}.")
-                await broadcaster(f"Subject: {pch.subject_name}\n"
-                                  f"Id: {j[0]}\n"
-                                  f"Url: {pch.subject_url}/test?id={j[0]}\n"
-                                  f"Target: {j[1]}")
-                with open('found.txt', 'a') as f:
-                    f.write(f"Found in subject {j[0]}: {j[1]}. On time {datetime.datetime.now()}\n")
-                # url_l = f"{pch.subject_url}/test?id={j[0]}&print=true"
-                # leaker = PdfLeaker(url_l)
-                # path = await leaker.run()
-                # await broadcaster(path, file=True)
+            if wait:
+                await asyncio.sleep(5)
+                continue
 
-                # await leaker.remove(path)
-                # del leaker
-            n_d = data[pch.subject_name]
-            n_d[1] = pch.current_num
-            data[pch.subject_name] = n_d
-            del pch
+            with open('data.json', 'w') as file:
+                json.dump(data, file, ensure_ascii=False)
 
-        with open('data.json', 'w') as file:
-            json.dump(data, file, ensure_ascii=False)
-
-        if time.time() - s_t > 10:
-            sleep_time -= 1
-        if time.time() - s_t < 2:
-            sleep_time += 1
-        await asyncio.sleep(sleep_time)
+            if time.time() - s_t > 10:
+                sleep_time -= 1
+            if time.time() - s_t < 2:
+                sleep_time += 1
+            await asyncio.sleep(sleep_time)
+        else:
+            exit(status)
 
 
 if __name__ == "__main__":
@@ -571,7 +627,9 @@ if __name__ == "__main__":
         logging.critical("No users.json.")
         exit("Add users.json file")
 
+
     async def run_all():
         await asyncio.gather(search(), main())
+
 
     asyncio.run(run_all())

@@ -178,3 +178,4 @@ cython_debug/
 /leacked.txt
 /set.yml
 /test.py
+/grab.py

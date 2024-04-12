@@ -29,7 +29,6 @@ except Exception as e:
 
 TOKEN = "6837174253:AAHuMokKb3PNdbXbP3iMfTFL8C8xp8hMzr8"
 
-
 auth_waiting = []
 users = []
 admins = []
@@ -132,9 +131,9 @@ class PageChecker:
             chunk = [next(ids) for _ in range(50)]
             results = await self.fetch_all(chunk)
             for page_id, result in zip(chunk, results):
-                if result and type(result) != int:
+                if result and type(result) is not int:
                     self.founded.append([result[0], result[1]])
-                elif type(result) == int:
+                elif type(result) is int:
                     return -1
 
             if None in chunk:
@@ -165,7 +164,6 @@ class PageChecker:
                 logging.critical(f"Get current error {errr}.")
                 self.current_num += 20
 
-
     def generate_test_r(self):
         problems = {1: 1}
 
@@ -177,7 +175,6 @@ class PageChecker:
             except Exception as errr:
                 logging.critical(f"Get current error {errr}.")
                 return -1
-
 
     @staticmethod
     def subject_url_by_name(name):
@@ -483,8 +480,8 @@ async def tell_users(text: str):
     for i in users:
         try:
             await bot.send_message(i, text)
-        except:
-            pass
+        except Exception as e:
+            logging.critical(f"Get cant send to user error {e}.")
 
 
 async def send_file(path: str):

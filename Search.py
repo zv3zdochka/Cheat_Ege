@@ -27,7 +27,9 @@ except Exception as e:
              "pip install -r requirements.txt\n"
              "You can find the requirements.txt file at: https://github.com/zv3zdochka/Cheat_Ege.git")
 
-TOKEN = "7169283346:AAHEMvMCFT5aJrinsA2NOrcE0_Xadrjg9x4"
+TOKEN = "6837174253:AAHuMokKb3PNdbXbP3iMfTFL8C8xp8hMzr8"
+
+
 auth_waiting = []
 users = []
 admins = []
@@ -96,7 +98,10 @@ class PageChecker:
         try:
             async with session.get(url) as response:
                 if response.status == 200:
-                    html = await response.text()
+                    try:
+                        html = await asyncio.wait_for(asyncio.create_task(response.text()), 10)
+                    except asyncio.TimeoutError:
+                        return 406
                     text = BeautifulSoup(html, 'html.parser').get_text()
 
                     if len(text) == 118:
@@ -127,15 +132,16 @@ class PageChecker:
             chunk = [next(ids) for _ in range(50)]
             results = await self.fetch_all(chunk)
             for page_id, result in zip(chunk, results):
-                if result and result != 403:
+                if result and type(result) != int:
                     self.founded.append([result[0], result[1]])
-                if result == 403:
+                elif type(result) == int:
                     return -1
+
             if None in chunk:
                 break
 
     async def search_from_to(self):
-        await self.main(self.id_generator_up)
+        return await self.main(self.id_generator_up)
 
     def id_generator_up(self):
         while self.start_id <= self.current_num:
@@ -149,41 +155,29 @@ class PageChecker:
         problems = {1: 1}
 
         dif = {f'prob{i}': problems[i] for i in problems}
-        n = 0
         while True:
-            if n == 5:
-                self.current_num += 20
             try:
                 self.current_num = int(
                     requests.get(f'{self.subject_url}/test?a=generate', dif, allow_redirects=False).headers[
                         'location'].split('id=')[1].split('&nt')[0])
                 break
             except Exception as errr:
-                # logging.critical(f"Get current error {errr}. Trying to find new page")
-                # asyncio.sleep(60)
-                # n += 1
-                return 75355504
-            finally:
-                n += 1
+                logging.critical(f"Get current error {errr}.")
+                self.current_num += 20
+
 
     def generate_test_r(self):
         problems = {1: 1}
 
         dif = {f'prob{i}': problems[i] for i in problems}
-        n = 0
         while True:
-            if n == 5:
-                return -1
             try:
                 return int(requests.get(f'{self.subject_url}/test?a=generate', dif,
                                         allow_redirects=False).headers['location'].split('id=')[1].split('&nt')[0])
             except Exception as errr:
-                return 75355504
-                # n += 1
-                # logging.critical(f"Get current error {errr}.")
-                # asyncio.sleep(60)
-            finally:
-                n += 1
+                logging.critical(f"Get current error {errr}.")
+                return -1
+
 
     @staticmethod
     def subject_url_by_name(name):
@@ -316,9 +310,12 @@ async def echo_handler(message: types.Message) -> None:
 
         elif text[0] == '/status':
             if wait:
-                await message.answer("Bot is waiting for cloudfare.")
+                await message.answer(
+                    "The bot is currently not functioning due to Cloudflare protection. "
+                    "We are waiting for Cloudflare to be disabled on the website.")
+
             else:
-                await message.answer("Bot successfully running.")
+                await message.answer("Bot is successfully running.")
 
         elif text[0] == '/deny':
             if len(text) == 2:
@@ -559,7 +556,8 @@ async def search():
                 p = await pch.search_from_to()
                 if p == -1:
                     wait = True
-                    await tell_users("Search stopped, waiting for cloudfare canceling.")
+                    await tell_users("The bot is currently not functioning due to Cloudflare protection. "
+                                     "We are waiting for Cloudflare to be disabled on the website.")
                     break
 
                 for j in pch.founded:
@@ -582,7 +580,8 @@ async def search():
                     # await leaker.remove(path)
                     # del leaker
                 n_d = data[pch.subject_name]
-                n_d[1] = pch.current_num
+                if pch.current_num > 1000:
+                    n_d[1] = pch.current_num
                 data[pch.subject_name] = n_d
                 del pch
 

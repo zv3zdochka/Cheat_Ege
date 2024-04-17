@@ -1,16 +1,7 @@
 -------------------------START--------------------------
-Found in subject 75357851: Щербина. On time 2024-04-11 23:32:03.274885
-Found in subject 75357917: Щербина. On time 2024-04-11 23:39:30.570593
-Found in subject 75380903: Щербина. On time 2024-04-12 22:04:17.887314
-Found in subject 75380942: Щербина. On time 2024-04-12 22:08:10.544350
-Found in subject 75381003: Щербина. On time 2024-04-12 22:13:26.127190
-Found in subject 75381032: Щербина. On time 2024-04-12 22:15:41.960273
-Found in subject 75381128: Щербина. On time 2024-04-12 22:23:06.622670
-Found in subject 75381175: Щербина. On time 2024-04-12 22:26:53.989587
-Found in subject 75381201: Щербина. On time 2024-04-12 22:28:36.686396
-Found in subject 75381280: Щербина. On time 2024-04-12 22:33:52.363865
-Found in subject 75381344: Щербина. On time 2024-04-12 22:38:23.856055
-Found in subject 75381361: Щербина. On time 2024-04-12 22:39:21.398541
-Found in subject 75381367: Щербина. On time 2024-04-12 22:40:41.232701
-Found in subject 75381391: Щербина. On time 2024-04-12 22:42:08.674740
-Found in subject 75381396: Щербина. On time 2024-04-12 22:42:29.410957
+Found in subject 75523246: Щербина. On time 2024-04-16 21:56:48.027435
+Found in subject 75523451: Щербина. On time 2024-04-16 22:02:59.437156
+Found in subject 75523527: Щербина. On time 2024-04-16 22:05:15.221687
+Found in subject 75523583: Щербина. On time 2024-04-16 22:07:30.954804
+Found in subject 75523767: Щербина. On time 2024-04-16 22:13:45.944384
+Found in subject 75556420: Щербина. On time 2024-04-17 20:30:56.084205

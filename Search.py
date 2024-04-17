@@ -27,7 +27,7 @@ except Exception as e:
              "pip install -r requirements.txt\n"
              "You can find the requirements.txt file at: https://github.com/zv3zdochka/Cheat_Ege.git")
 
-TOKEN = "6837174253:AAHuMokKb3PNdbXbP3iMfTFL8C8xp8hMzr8"
+TOKEN = "7169283346:AAHEMvMCFT5aJrinsA2NOrcE0_Xadrjg9x4"
 
 auth_waiting = []
 users = []
@@ -114,11 +114,12 @@ class PageChecker:
                     if "JavaScript" in text:
                         logging.warning(f"JavaScript on page {url}.")
                         return
-                elif response.status == 403:
-                    return 403
+                else:
+                    logging.critical(f"Check response {response.status}")
+                    return response.status
 
         except Exception as e:
-            logging.warning(f"Exeption {e} on {url}.")
+            logging.warning(f"Exception {e} on {url}.")
 
     async def fetch_all(self, ids):
         async with aiohttp.ClientSession() as session:
@@ -287,7 +288,6 @@ async def echo_handler(message: types.Message) -> None:
     elif message.chat.id not in admins:
         await message.answer("Only admins can chat with the bot.\n"
                              "If you want to tell something to admins or to add the teacher write to: @sugarpups010\n")
-
     else:
         text = message.text.split()
 
@@ -322,7 +322,6 @@ async def echo_handler(message: types.Message) -> None:
                     await bot.send_message(int(text[1]), str("Permission denied."))
                     await bot.send_message(message.chat.id, f"Authorisation of user {text[1]} denied")
                     await bot.send_message(creator, f"User {message.chat.id} denied {int(text[1])}.")
-
                     update_json()
                 else:
                     await message.answer("No such user, waiting for authorization.")
@@ -512,90 +511,88 @@ async def broadcaster(st: str, file=False):
 
 async def check_cloudfare(url):
     async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            return response.status
+        try:
+            async with session.get(url, timeout=15) as response:
+                try:
+                    return response.status
+                except TimeoutError:
+                    return 403
+        except Exception as e:
+            print(e)
+            return 403
 
 
 async def check_connection():
     return await check_cloudfare("https://ege.sdamgia.ru/")
 
 
+async def cloud_wait():
+    while True:
+        status = await check_connection()
+        if status == 200:
+            return
+        await asyncio.sleep(15)
+
+
 async def search():
     global first, wait
     sleep_time = 15
+
     while True:
         status = await check_connection()
-        if status == 403:
-            if not wait:
-                await tell_users("Search stopped, waiting for cloudfare canceling.")
-                wait = True
-            await asyncio.sleep(5)
-            continue
-        elif status == 200:
-            if wait:
-                await tell_users("Search is running again:)))")
-                wait = False
-            s_t = time.time()
-            if first:
-                for key, value in data.items():
-                    pch = PageChecker(key, value[0])
-                    te = pch.generate_test_r()
-                    if te == -1:
-                        exit("Cant detect new test. Check connection.")
-                    data[key] = [value[0], te]
-                    del pch
-                first = False
+        if status != 200:
+            await cloud_wait()
 
+        s_t = time.time()
+
+        if first:
             for key, value in data.items():
-                if wait:
-                    continue
-                pch = PageChecker(key, value[0], value[1])
-                p = await pch.search_from_to()
-                if p == -1:
-                    wait = True
-                    await tell_users("The bot is currently not functioning due to Cloudflare protection. "
-                                     "We are waiting for Cloudflare to be disabled on the website.")
-                    break
-
-                for j in pch.founded:
-                    if j not in founded:
-                        founded.append(j)
-                    else:
-                        continue
-                    logging.info(f"Test {j} found in subject {pch.subject_name}.")
-                    await broadcaster(f"Subject: {pch.subject_name}\n"
-                                      f"Id: {j[0]}\n"
-                                      f"Url: {pch.subject_url}/test?id={j[0]}\n"
-                                      f"Target: {j[1]}")
-                    with open('found.txt', 'a') as f:
-                        f.write(f"Found in subject {j[0]}: {j[1]}. On time {datetime.datetime.now()}\n")
-                    # url_l = f"{pch.subject_url}/test?id={j[0]}&print=true"
-                    # leaker = PdfLeaker(url_l)
-                    # path = await leaker.run()
-                    # await broadcaster(path, file=True)
-
-                    # await leaker.remove(path)
-                    # del leaker
-                n_d = data[pch.subject_name]
-                if pch.current_num > 1000:
-                    n_d[1] = pch.current_num
-                data[pch.subject_name] = n_d
+                pch = PageChecker(key, value[0])
+                te = pch.generate_test_r()
+                if te == -1:
+                    logging.critical("Can't get a test.")
+                data[key] = [value[0], te]
                 del pch
+            first = False
 
-            if wait:
-                await asyncio.sleep(5)
-                continue
+        for key, value in data.items():
+            pch = PageChecker(key, value[0], value[1])
+            p = await pch.search_from_to()
+            if p == -1:
+                await tell_users("The bot is currently not functioning due to Cloudflare protection. "
+                                 "We are waiting for Cloudflare to be disabled on the website.")
+                break
 
-            with open('data.json', 'w') as file:
-                json.dump(data, file, ensure_ascii=False)
+            for j in pch.founded:
+                if j not in founded:
+                    founded.append(j)
+                else:
+                    continue
 
-            if time.time() - s_t > 10:
-                sleep_time -= 1
-            if time.time() - s_t < 2:
-                sleep_time += 1
-            await asyncio.sleep(sleep_time)
-        else:
-            exit(status)
+                logging.info(f"Test {j} found in subject {pch.subject_name}.")
+
+                await broadcaster(f"Subject: {pch.subject_name}\n"
+                                  f"Id: {j[0]}\n"
+                                  f"Url: {pch.subject_url}/test?id={j[0]}\n"
+                                  f"Target: {j[1]}")
+
+                with open('found.txt', 'a') as f:
+                    f.write(f"Found in subject {j[0]}: {j[1]}. On time {datetime.datetime.now()}\n")
+
+            n_d = data[pch.subject_name]
+            if pch.current_num > 1000:
+                n_d[1] = pch.current_num
+            data[pch.subject_name] = n_d
+            del pch
+
+        with open('data.json', 'w') as file:
+            json.dump(data, file, ensure_ascii=False)
+
+        if time.time() - s_t > 10:
+            sleep_time -= 1
+        if time.time() - s_t < 2:
+            sleep_time += 1
+        await asyncio.sleep(sleep_time)
 
 
 if __name__ == "__main__":

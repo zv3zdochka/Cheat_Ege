@@ -1,0 +1,59 @@
+-------------------------START--------------------------
+23:03:48,402 asyncio DEBUG Using proactor: IocpProactor
+23:03:48,444 aiogram.dispatcher INFO Start polling
+23:03:48,915 aiogram.dispatcher INFO Run polling for bot @ehhererbot id=7169283346 - '12312312312312'
+23:05:48,489 aiogram.dispatcher INFO Polling stopped
+23:05:48,490 aiogram.dispatcher INFO Polling stopped for bot @ehhererbot id=7169283346 - '12312312312312'
+21:55:05,195 asyncio DEBUG Using proactor: IocpProactor
+21:55:05,251 aiogram.dispatcher INFO Start polling
+21:55:12,458 aiogram.dispatcher INFO Run polling for bot @ehhererbot id=7169283346 - '12312312312312'
+21:56:46,893 root INFO Test [75523246, 'Щербина'] found in subject math.
+21:56:46,893 root INFO Broadcast Subject: math
+Id: 75523246
+Url: https://math-ege.sdamgia.ru/test?id=75523246
+Target: Щербина.
+22:02:11,396 aiogram.dispatcher INFO Polling stopped
+22:02:11,398 aiogram.dispatcher INFO Polling stopped for bot @ehhererbot id=7169283346 - '12312312312312'
+22:02:15,746 asyncio DEBUG Using proactor: IocpProactor
+22:02:15,808 aiogram.dispatcher INFO Start polling
+22:02:22,266 aiogram.dispatcher INFO Run polling for bot @ehhererbot id=7169283346 - '12312312312312'
+22:02:58,409 root INFO Test [75523451, 'Щербина'] found in subject math.
+22:02:58,409 root INFO Broadcast Subject: math
+Id: 75523451
+Url: https://math-ege.sdamgia.ru/test?id=75523451
+Target: Щербина.
+22:05:14,810 root INFO Test [75523527, 'Щербина'] found in subject math.
+22:05:14,810 root INFO Broadcast Subject: math
+Id: 75523527
+Url: https://math-ege.sdamgia.ru/test?id=75523527
+Target: Щербина.
+22:07:30,712 root INFO Test [75523583, 'Щербина'] found in subject math.
+22:07:30,712 root INFO Broadcast Subject: math
+Id: 75523583
+Url: https://math-ege.sdamgia.ru/test?id=75523583
+Target: Щербина.
+22:13:45,584 root INFO Test [75523767, 'Щербина'] found in subject math.
+22:13:45,585 root INFO Broadcast Subject: math
+Id: 75523767
+Url: https://math-ege.sdamgia.ru/test?id=75523767
+Target: Щербина.
+20:23:46,840 asyncio DEBUG Using proactor: IocpProactor
+20:23:46,882 aiogram.dispatcher INFO Start polling
+20:26:08,832 asyncio DEBUG Using proactor: IocpProactor
+20:26:08,869 aiogram.dispatcher INFO Start polling
+20:26:09,44 aiogram.dispatcher INFO Run polling for bot @ehhererbot id=7169283346 - '12312312312312'
+20:27:20,633 aiogram.dispatcher INFO Polling stopped
+20:27:20,633 aiogram.dispatcher INFO Polling stopped for bot @ehhererbot id=7169283346 - '12312312312312'
+20:30:25,443 asyncio DEBUG Using proactor: IocpProactor
+20:30:25,477 aiogram.dispatcher INFO Start polling
+20:30:28,718 aiogram.dispatcher INFO Run polling for bot @ehhererbot id=7169283346 - '12312312312312'
+20:30:55,812 root INFO Test [75556420, 'Щербина'] found in subject math.
+20:30:55,812 root INFO Broadcast Subject: math
+Id: 75556420
+Url: https://math-ege.sdamgia.ru/test?id=75556420
+Target: Щербина.
+20:31:28,732 aiogram.dispatcher ERROR Failed to fetch updates - TelegramNetworkError: HTTP Client says - ClientOSError: [WinError 121] Превышен таймаут семафора
+20:31:28,732 aiogram.dispatcher WARNING Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 7169283346)
+20:31:29,960 aiogram.dispatcher INFO Connection established (tryings = 1, bot id = 7169283346)
+20:32:21,347 aiogram.dispatcher INFO Polling stopped
+20:32:21,348 aiogram.dispatcher INFO Polling stopped for bot @ehhererbot id=7169283346 - '12312312312312'

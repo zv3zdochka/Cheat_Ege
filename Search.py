@@ -1,28 +1,27 @@
+import sys
+
 try:
     import datetime
     import aiohttp
-    from bs4 import BeautifulSoup
     import asyncio
-    import sys
     import time
+    import json
+    import logging
+    import requests
+    import aiofiles
+    import selenium.common.exceptions
+
+    from bs4 import BeautifulSoup
+    from selenium.webdriver.common.by import By
+    from selenium import webdriver
     from aiogram import Bot, Dispatcher, types
     from aiogram.types import Message, FSInputFile
     from aiogram.utils.markdown import hbold
     from aiogram.enums import ParseMode
     from aiogram.filters import CommandStart
-    import json
-    import logging
-    import requests
-    import aiofiles
-    import os
-
-    import selenium.common.exceptions
-    from selenium.webdriver.common.by import By
-    from selenium import webdriver
 
 
-except Exception as e:
-    print(e)
+except ModuleNotFoundError:
     sys.exit("Required libraries are missing. Please install them using:\n"
              "pip install -r requirements.txt\n"
              "You can find the requirements.txt file at: https://github.com/zv3zdochka/Cheat_Ege.git")
@@ -33,9 +32,6 @@ auth_waiting = []
 users = []
 admins = []
 ban = []
-founded = []
-wait = False
-
 nicknames = {}
 dp = Dispatcher()
 bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
@@ -51,35 +47,12 @@ logging.basicConfig(filename='log.txt',
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 logging.getLogger("aiogram.event").setLevel(logging.CRITICAL)
 
-chrome_options = webdriver.ChromeOptions()
-
-settings = {
-    "recentDestinations": [{
-        "id": "Save as PDF",
-        "origin": "local",
-        "account": ""
-    }],
-    "selectedDestinationId": "Save as PDF",
-    "version": 2,
-    "isHeaderFooterEnabled": False,
-    "isCssBackgroundEnabled": True
-}
-
-chrome_options.add_argument('--enable-print-browser')
-# chrome_options.add_argument('--headless')
-
-prefs = {
-    'printing.print_preview_sticky_settings.appState': json.dumps(settings),
-    'savefile.default_directory': r'C:\Users\batsi\PycharmProjects\Ege_Cheater'
-}
-chrome_options.add_argument('--kiosk-printing')
-chrome_options.add_experimental_option('prefs', prefs)
-
 
 class PageChecker:
     def __init__(self, subject_name, targets, start=-1):
         self.subject_name = subject_name
         self.targets = targets
+        self.stop = False
         self.subject_url = self.subject_url_by_name(subject_name)
         if start == -1:
             pass
@@ -87,7 +60,8 @@ class PageChecker:
             self.start_id = start
             self.founded = []
             self.current_num = 0
-            self.generate_test()
+            if self.generate_test() == -1:
+                self.stop = True
 
     async def check_page(self, session, page_id):
         if page_id is None:
@@ -95,12 +69,9 @@ class PageChecker:
 
         url = f"{self.subject_url}/test?id={page_id}"
         try:
-            async with session.get(url) as response:
+            async with session.get(url, timeout=15) as response:
                 if response.status == 200:
-                    try:
-                        html = await asyncio.wait_for(asyncio.create_task(response.text()), 10)
-                    except asyncio.TimeoutError:
-                        return 406
+                    html = await response.text()
                     text = BeautifulSoup(html, 'html.parser').get_text()
 
                     if len(text) == 118:
@@ -114,9 +85,8 @@ class PageChecker:
                     if "JavaScript" in text:
                         logging.warning(f"JavaScript on page {url}.")
                         return
-                else:
-                    logging.critical(f"Check response {response.status}")
-                    return response.status
+        except TimeoutError:
+            logging.warning(f"Timeout on {url}.")
 
         except Exception as e:
             logging.warning(f"Exception {e} on {url}.")
@@ -132,16 +102,13 @@ class PageChecker:
             chunk = [next(ids) for _ in range(50)]
             results = await self.fetch_all(chunk)
             for page_id, result in zip(chunk, results):
-                if result and type(result) is not int:
+                if result:
                     self.founded.append([result[0], result[1]])
-                elif type(result) is int:
-                    return -1
-
             if None in chunk:
                 break
 
     async def search_from_to(self):
-        return await self.main(self.id_generator_up)
+        await self.main(self.id_generator_up)
 
     def id_generator_up(self):
         while self.start_id <= self.current_num:
@@ -160,10 +127,10 @@ class PageChecker:
                 self.current_num = int(
                     requests.get(f'{self.subject_url}/test?a=generate', dif, allow_redirects=False).headers[
                         'location'].split('id=')[1].split('&nt')[0])
-                break
+                return
             except Exception as errr:
-                logging.critical(f"Get current error {errr}.")
-                self.current_num += 20
+                logging.critical(f"Can't generate a test {errr}.")
+                return -1
 
     def generate_test_r(self):
         problems = {1: 1}
@@ -197,58 +164,6 @@ class PageChecker:
             'hist': 'https://hist-ege.sdamgia.ru',
         }
         return subjects.get(name)
-
-
-class PdfLeaker:
-    def __init__(self, url):
-        self.driver = webdriver.Chrome(options=chrome_options)
-        self.url = url
-        self.login = "he@gmail.com"
-        self.password = "123"
-
-    async def log_in(self):
-        self.driver.get("https://ege.sdamgia.ru")
-        await asyncio.sleep(2)
-        while True:
-            try:
-                email_field = self.driver.find_element(By.ID, "email")
-                email_field.send_keys(self.login)
-                password_field = self.driver.find_element(By.ID, "current-password")
-                password_field.send_keys(self.password)
-                await asyncio.sleep(0.4)
-                password_field.submit()
-                await asyncio.sleep(0.4)
-                break
-            except selenium.common.exceptions.NoSuchElementException:
-                await asyncio.sleep(2)
-
-    async def leak(self):
-        self.driver.get(self.url)
-        await asyncio.sleep(2)
-        self.driver.find_element(By.CSS_SELECTOR, "input#cb_ans").click()
-        self.driver.find_element(By.CSS_SELECTOR, "input#cb_sol").click()
-        self.driver.execute_script('window.print();')
-        self.driver.close()
-
-    @staticmethod
-    async def do_file(old, new):
-        async with aiofiles.open(old, 'rb') as old_file:
-            async with aiofiles.open(new, 'wb') as new_file:
-                contents = await old_file.read()
-                await new_file.write(contents)
-
-    @staticmethod
-    async def remove(name):
-        os.remove(name)
-
-    async def run(self):
-        await self.log_in()
-        await self.leak()
-        old = self.url[8:].replace('?', '_').replace('/', '_') + '.pdf'
-        new = old.split('-')[0] + '_' + old.replace('=', '-').replace('&', '-').split('-')[2] + '.pdf'
-        await self.do_file(old, new)
-        await self.remove(old)
-        return new
 
 
 @dp.message(CommandStart())
@@ -288,6 +203,7 @@ async def echo_handler(message: types.Message) -> None:
     elif message.chat.id not in admins:
         await message.answer("Only admins can chat with the bot.\n"
                              "If you want to tell something to admins or to add the teacher write to: @sugarpups010\n")
+
     else:
         text = message.text.split()
 
@@ -305,15 +221,6 @@ async def echo_handler(message: types.Message) -> None:
             else:
                 await bot.send_message(message.chat.id, "No such command, use /help")
 
-        elif text[0] == '/status':
-            if wait:
-                await message.answer(
-                    "The bot is currently not functioning due to Cloudflare protection. "
-                    "We are waiting for Cloudflare to be disabled on the website.")
-
-            else:
-                await message.answer("Bot is successfully running.")
-
         elif text[0] == '/deny':
             if len(text) == 2:
 
@@ -322,6 +229,7 @@ async def echo_handler(message: types.Message) -> None:
                     await bot.send_message(int(text[1]), str("Permission denied."))
                     await bot.send_message(message.chat.id, f"Authorisation of user {text[1]} denied")
                     await bot.send_message(creator, f"User {message.chat.id} denied {int(text[1])}.")
+
                     update_json()
                 else:
                     await message.answer("No such user, waiting for authorization.")
@@ -357,6 +265,15 @@ async def echo_handler(message: types.Message) -> None:
                     await bot.send_message(creator, f"User {message.chat.id} tried to make admin user {int(text[1])}.")
             else:
                 await bot.send_message(message.chat.id, "No such command, use /help")
+
+        elif text[0] == '/status':
+            code = await check_connection()
+            if code == 200:
+                await message.answer("Bot is successfully running.")
+            else:
+                await message.answer(
+                    "The bot is currently not functioning due to Cloudflare protection. "
+                    f"Response code: {code}")
 
         elif text[0] == '/del_admin':
             if len(text) == 2:
@@ -480,7 +397,7 @@ async def tell_users(text: str):
         try:
             await bot.send_message(i, text)
         except Exception as e:
-            logging.critical(f"Get cant send to user error {e}.")
+            logging.warning(f"Can't tell {text} to user {i}. Exception {e}")
 
 
 async def send_file(path: str):
@@ -518,7 +435,7 @@ async def check_cloudfare(url):
                 except TimeoutError:
                     return 403
         except Exception as e:
-            print(e)
+            logging.critical(e)
             return 403
 
 
@@ -526,73 +443,67 @@ async def check_connection():
     return await check_cloudfare("https://ege.sdamgia.ru/")
 
 
-async def cloud_wait():
-    while True:
-        status = await check_connection()
-        if status == 200:
-            return
-        await asyncio.sleep(15)
-
-
 async def search():
-    global first, wait
+    global first
+    wait = False
     sleep_time = 15
-
     while True:
-        status = await check_connection()
-        if status != 200:
-            await cloud_wait()
+        response = await check_connection()
+        if response == 200:
+            if wait:
+                await tell_users("Search is running again. ")
+                wait = False
 
-        s_t = time.time()
+            s_t = time.time()
+            if first:
+                for key, value in data.items():
+                    pch = PageChecker(key, value[0])
+                    te = pch.generate_test_r()
+                    if te == -1:
+                        logging.warning("First time location error. ")
 
-        if first:
-            for key, value in data.items():
-                pch = PageChecker(key, value[0])
-                te = pch.generate_test_r()
-                if te == -1:
-                    logging.critical("Can't get a test.")
-                data[key] = [value[0], te]
-                del pch
-            first = False
+                        break
+                    data[key] = [value[0], te]
+                    del pch
+                first = False
+                await tell_users("And so we begin")
 
-        for key, value in data.items():
-            pch = PageChecker(key, value[0], value[1])
-            p = await pch.search_from_to()
-            if p == -1:
+            if not wait:
+                for key, value in data.items():
+                    pch = PageChecker(key, value[0], value[1])
+                    if pch.stop:
+                        logging.warning("Location error. ")
+                        break
+
+                    await pch.search_from_to()
+                    for j in pch.founded:
+                        logging.info(f"Test {j} found in subject {pch.subject_name}.")
+                        await broadcaster(f"Subject: {pch.subject_name}\n"
+                                          f"Id: {j[0]}\n"
+                                          f"Url: {pch.subject_url}/test?id={j[0]}\n"
+                                          f"Target: {j[1]}")
+                        with open('found.txt', 'a') as f:
+                            f.write(f"Found in subject {j[0]}: {j[1]}. On time {datetime.datetime.now()}\n")
+                    n_d = data[pch.subject_name]
+                    n_d[1] = pch.current_num
+                    data[pch.subject_name] = n_d
+                    del pch
+
+                with open('data.json', 'w') as file:
+                    json.dump(data, file, ensure_ascii=False)
+
+                if time.time() - s_t > 10:
+                    sleep_time -= 1
+                if time.time() - s_t < 2:
+                    sleep_time += 1
+                await asyncio.sleep(sleep_time)
+        else:
+            if not wait:
                 await tell_users("The bot is currently not functioning due to Cloudflare protection. "
-                                 "We are waiting for Cloudflare to be disabled on the website.")
-                break
-
-            for j in pch.founded:
-                if j not in founded:
-                    founded.append(j)
-                else:
-                    continue
-
-                logging.info(f"Test {j} found in subject {pch.subject_name}.")
-
-                await broadcaster(f"Subject: {pch.subject_name}\n"
-                                  f"Id: {j[0]}\n"
-                                  f"Url: {pch.subject_url}/test?id={j[0]}\n"
-                                  f"Target: {j[1]}")
-
-                with open('found.txt', 'a') as f:
-                    f.write(f"Found in subject {j[0]}: {j[1]}. On time {datetime.datetime.now()}\n")
-
-            n_d = data[pch.subject_name]
-            if pch.current_num > 1000:
-                n_d[1] = pch.current_num
-            data[pch.subject_name] = n_d
-            del pch
-
-        with open('data.json', 'w') as file:
-            json.dump(data, file, ensure_ascii=False)
-
-        if time.time() - s_t > 10:
-            sleep_time -= 1
-        if time.time() - s_t < 2:
-            sleep_time += 1
-        await asyncio.sleep(sleep_time)
+                                 f"Response code: {response}")
+                wait = True
+            logging.info("cloudfare begin")
+            await asyncio.sleep(20)
 
 
 if __name__ == "__main__":

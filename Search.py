@@ -110,7 +110,8 @@ class PageChecker:
                             return
             except Exception as eex:
                 again.append(url)
-            logging.warning(f"Timeout on {url}. Error {eex}")
+                logging.warning(f"Error on {eex}.")
+            logging.warning(f"Timeout on {url}.")
 
         except Exception as e:
             again.append(url)

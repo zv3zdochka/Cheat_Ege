@@ -216,7 +216,7 @@ async def check_again():
                     else:
                         await bot.send_message(1363003331, f"Can't check {i}")
             except Exception as e:
-                await bot.send_message(1363003331, f"Can't check {i}, Error {e})
+                await bot.send_message(1363003331, f"Can't check {i}, Error {e}")
 
 
 

@@ -1,31 +1,39 @@
-Available commands and their descriptions:
+Here's a list of commands provided by the bot:
 
-/start - Initiates interaction with the bot. If the user is not authorized, it prompts for authorization. If the user is authorized, it greets the user or notifies the user about the ongoing tests.
+- **/start**: Begin interaction with the bot (authorizes the user).
 
-/allow <user_id> - Authorizes a user with the provided user ID. Only accessible to admins.
+- **/help**: Display the help guide.
 
-/deny <user_id> - Denies authorization for a user with the provided user ID. Only accessible to admins.
+- **/status**: Check if the bot is running successfully.
 
-/help - Provides help instructions to the user. If the user is not an admin, it informs them that only admins can use the bot. If the user is an admin, it provides admin-specific instructions.
+- **/save**: Download bot data (JSON files and logs).
 
-/make_admin <user_id> - Grants admin privileges to the user with the provided user ID. Only accessible to the creator.
+- **/allow [user_id]**: Admins can authorize a user.
 
-/del_admin <user_id> - Revokes admin privileges from the user with the provided user ID. Only accessible to the creator.
+- **/deny [user_id]**: Admins can deny a user's authorization.
 
-/text <message> - Sends a message to all users. Only accessible to admins.
+- **/make_admin [user_id]**: Creator can promote a user to admin status.
 
-/text_to <user_id> <message> - Sends a message to a specific user identified by the provided user ID. Only accessible to admins.
+- **/del_admin [user_id]**: Creator can remove admin status from a user.
 
-/ban <user_id> - Bans the user with the provided user ID, preventing them from using the bot. Only accessible to admins.
+- **/ban [user_id]**: Admins can ban a user.
 
-/free <user_id> - Releases a user from the ban. Only accessible to admins.
+- **/free [user_id]**: Admins can unban a user.
 
-/delete <user_id> - Deletes a user from the authorized user list. Only accessible to admins.
+- **/delete [user_id]**: Admins can delete a user.
 
-/users - Displays a list of authorized users. Only accessible to admins.
+- **/text [message]**: Admins can send a message to all users.
 
-/all - Displays a list of all users, including authorized and unauthorized ones. Only accessible to admins.
+- **/text_to [user_id] [message]**: Admins can send a message to a specific user.
 
-/banned - Displays a list of banned users. Only accessible to admins.
+- **/again**: Re-run a task, if available.
 
-/save - Sends files containing user data and logs to the user who invokes the command. Only accessible to admins.
+- **/show_troubles**: Show issues, if any.
+
+- **/clear**: Clear previous tasks.
+
+- **/users**: Show the list of authorized users.
+
+- **/all**: Show all registered nicknames.
+
+- **/banned**: Show the list of banned users.

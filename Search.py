@@ -1,10 +1,10 @@
 import sys
+import time
 
 try:
     import datetime
     import aiohttp
     import asyncio
-    import time
     import json
     import logging
     import requests
@@ -32,6 +32,7 @@ auth_waiting = []
 users = []
 admins = []
 ban = []
+again = ["https://math-ege.sdamgia.ru/test?id=75681460", "https://math-ege.sdamgia.ru/test?id=75680460"]
 nicknames = {}
 dp = Dispatcher()
 bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
@@ -69,7 +70,7 @@ class PageChecker:
 
         url = f"{self.subject_url}/test?id={page_id}"
         try:
-            async with session.get(url, timeout=15) as response:
+            async with session.get(url, timeout=30) as response:
                 if response.status == 200:
                     html = await response.text()
                     text = BeautifulSoup(html, 'html.parser').get_text()
@@ -85,10 +86,34 @@ class PageChecker:
                     if "JavaScript" in text:
                         logging.warning(f"JavaScript on page {url}.")
                         return
+                else:
+                    again.append(url)
         except TimeoutError:
+
+            await asyncio.sleep(5)
+            try:
+                async with session.get(url, timeout=30) as response:
+                    if response.status == 200:
+                        html = await response.text()
+                        text = BeautifulSoup(html, 'html.parser').get_text()
+
+                        if len(text) == 118:
+                            logging.warning(f"Page {url} not found.")
+                            return
+
+                        for target in self.targets:
+                            if target in text:
+                                return [page_id, target]
+
+                        if "JavaScript" in text:
+                            logging.warning(f"JavaScript on page {url}.")
+                            return
+            except:
+                again.append(url)
             logging.warning(f"Timeout on {url}.")
 
         except Exception as e:
+            again.append(url)
             logging.warning(f"Exception {e} on {url}.")
 
     async def fetch_all(self, ids):
@@ -166,6 +191,35 @@ class PageChecker:
         return subjects.get(name)
 
 
+async def check_again():
+    async with aiohttp.ClientSession() as session:
+        for i in again:
+            try:
+                async with session.get(i, timeout=30) as response:
+                    if response.status == 200:
+                        html = await response.text()
+                        text = BeautifulSoup(html, 'html.parser').get_text()
+
+                        if len(text) == 118:
+                            logging.warning(f"Page {i} not found.")
+                            await bot.send_message(1363003331, f"Can't check {i}")
+                            again.remove(i)
+                            continue
+
+                        for target in ['Щербина', "Панькина", "Перхулова", "Смирнова"]:
+                            if target in text:
+                                await bot.send_message(1363003331, f"Url: {i}\n"f"Target: {target}")
+                            again.remove(i)
+
+                        again.remove(i)
+
+                    else:
+                        await bot.send_message(1363003331, f"Can't check {i}")
+            except:
+                await bot.send_message(1363003331, f"Can't check {i}")
+
+
+
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
     nicknames[str(message.chat.id)] = str(message.chat.username)
@@ -194,6 +248,7 @@ async def command_start_handler(message: Message) -> None:
 
 @dp.message()
 async def echo_handler(message: types.Message) -> None:
+    global again
     nicknames[str(message.chat.id)] = str(message.chat.username)
     update_json()
     if message.chat.id in ban:
@@ -221,6 +276,21 @@ async def echo_handler(message: types.Message) -> None:
             else:
                 await bot.send_message(message.chat.id, "No such command, use /help")
 
+        elif text[0] == '/again':
+            if again:
+                await asyncio.create_task(check_again())
+            else:
+                await bot.send_message(message.chat.id, 'Empty')
+
+        elif text[0] == '/show_troubles':
+            if again:
+                await bot.send_message(message.chat.id, '\n'.join(again))
+            else:
+                await bot.send_message(message.chat.id, 'Empty')
+
+        elif text[0] == '/clear':
+            again = []
+
         elif text[0] == '/deny':
             if len(text) == 2:
 
@@ -243,6 +313,7 @@ async def echo_handler(message: types.Message) -> None:
                                      "@sugarpups010")
             else:
                 await bot.send_document(message.chat.id, FSInputFile(path='help.txt'))
+
 
         elif text[0] == '/make_admin':
             if len(text) == 2:
@@ -451,7 +522,7 @@ async def search():
         response = await check_connection()
         if response == 200:
             if wait:
-                await tell_users("Search is running again. ")
+                await bot.send_message(1363003331, "Search is running again. ")
                 wait = False
 
             s_t = time.time()
@@ -499,8 +570,8 @@ async def search():
                 await asyncio.sleep(sleep_time)
         else:
             if not wait:
-                await tell_users("The bot is currently not functioning due to Cloudflare protection. "
-                                 f"Response code: {response}")
+                await bot.send_message(1363003331, "The bot is currently not functioning due to Cloudflare protection. "
+                                                   f"Response code: {response}")
                 wait = True
             logging.info("cloudfare begin")
             await asyncio.sleep(20)

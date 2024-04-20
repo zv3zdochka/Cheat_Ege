@@ -26,7 +26,7 @@ except ModuleNotFoundError:
              "pip install -r requirements.txt\n"
              "You can find the requirements.txt file at: https://github.com/zv3zdochka/Cheat_Ege.git")
 
-TOKEN = "7169283346:AAHEMvMCFT5aJrinsA2NOrcE0_Xadrjg9x4"
+TOKEN = "6837174253:AAHuMokKb3PNdbXbP3iMfTFL8C8xp8hMzr8"
 
 auth_waiting = []
 users = []

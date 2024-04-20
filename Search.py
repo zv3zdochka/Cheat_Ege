@@ -108,9 +108,9 @@ class PageChecker:
                         if "JavaScript" in text:
                             logging.warning(f"JavaScript on page {url}.")
                             return
-            except Exception as e:
+            except Exception as eex:
                 again.append(url)
-            logging.warning(f"Timeout on {url}. Error {e}")
+            logging.warning(f"Timeout on {url}. Error {eex}")
 
         except Exception as e:
             again.append(url)

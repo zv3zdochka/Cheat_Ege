@@ -21,12 +21,12 @@
     yc container registry create test-registry
     yc container registry configure-docker
     ```
-5. Obtain your registry ID and publish the file there:
-    ```
-    docker tag search cr.yandex/crp******/search:test
-    docker push cr.yandex/crp******/search:test
-    ```
-    Here `crp******` is your registry ID.
+   5. Obtain your registry ID and publish the file there:
+       ```
+       docker tag search cr.yandex/crp******/search:test
+       docker push cr.yandex/crp******/search:test
+       ```
+       Here `crp******` is your registry ID.
 
 ### Creating a Virtual Machine with the Container
 1. Go to the [virtual machines section](https://console.cloud.yandex.com/folders) on the Yandex Cloud console.

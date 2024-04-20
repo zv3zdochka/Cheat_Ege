@@ -5,7 +5,9 @@ ignore =
     # Module imported by unused
     F401,
     # Module level import not at top of file
-    E402
+    E402,
+    #Fuck blank line
+    E303
 
 exclude =
     .venv,

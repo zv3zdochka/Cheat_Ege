@@ -108,9 +108,9 @@ class PageChecker:
                         if "JavaScript" in text:
                             logging.warning(f"JavaScript on page {url}.")
                             return
-            except:
+            except Exception as e:
                 again.append(url)
-            logging.warning(f"Timeout on {url}.")
+            logging.warning(f"Timeout on {url}. Error {e}")
 
         except Exception as e:
             again.append(url)
@@ -215,8 +215,8 @@ async def check_again():
 
                     else:
                         await bot.send_message(1363003331, f"Can't check {i}")
-            except:
-                await bot.send_message(1363003331, f"Can't check {i}")
+            except Exception as e:
+                await bot.send_message(1363003331, f"Can't check {i}, Error {e})
 
 
 
